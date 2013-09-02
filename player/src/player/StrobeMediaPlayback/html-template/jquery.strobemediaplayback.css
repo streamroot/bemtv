@@ -1,0 +1,269 @@
+body {
+    background: #000000;
+}
+
+.smp {
+    width: 24px;
+    height: 24px;     
+    background: transparent url(jquery.strobemediaplayback.png) no-repeat;
+    display: block;
+}
+
+.play {
+    background-position: 0 0;
+}
+
+a.play:hover {
+    background-position: 0 -24px;
+}
+
+a.play:active {
+    background-position: 0 -48px;
+}
+
+.pause {
+    background-position: -24px 0;
+}
+
+a.pause:hover {
+    background-position: -24px -24px;
+}
+
+a.pause:active {
+    background-position: -24px -48px;
+}
+
+.volume.low {
+    background-position: -24px -72px;
+}
+
+a.volume.low:hover {
+    background-position: -24px -96px;
+}
+
+a.volume.low:active {
+    background-position: -24px -120px;
+}
+
+.volume.med {
+    background-position: -48px -72px;
+}
+
+a.volume.med:hover {
+    background-position: -48px -96px;
+}
+
+a.volume.med:active {
+    background-position: -48px -120px;
+}
+
+.volume.high {
+    background-position: -72px -72px;
+}
+
+a.volume.high:hover {
+    background-position: -72px -96px;
+}
+
+a.volume.high:active {
+    background-position: -72px -120px;
+}
+
+.volume.mute {
+    background-position: 0 -72px;
+}
+
+a.volume.mute:hover {
+    background-position: 0 -96px;
+}
+
+a.volume.mute:active {
+    background-position: 0 -120px;
+}
+
+.fullscreen {
+    background-position: -48px -0px;
+}
+
+a.fullscreen:hover {
+    background-position: -48px -24px;
+}
+
+a.fullscreen:active {
+    background-position: -48px -48px;
+}
+
+.fullscreen.on {
+    background-position: -72px -0px;
+}
+
+a.fullscreen.on:hover {
+    background-position: -72px -24px;
+}
+
+a.fullscreen.on:active {
+    background-position: -72px -48px;
+}
+
+.playoverlay {
+	display:none;
+	z-index: 1001;
+    width: 116px;
+    height: 107px;
+   	background: transparent url(jquery.strobemediaplayback.png) no-repeat;
+    background-position: -92px 0;
+}
+
+a.playoverlay:hover, a.playoverlay:active {
+    background-position: -92px -107px;
+}
+
+.strobeMediaPlaybackControlBar {
+    background-color: #000000;
+    color: #E8E8E8;
+    height: 30px;
+    opacity: 0.9;
+    position: absolute;
+    border: 1px solid #404040;
+    outline: 1px solid #101010;
+    outline-offset: 1px;
+    z-index: 1000;
+    /*bottom: 2px;*/
+    width: 100%;
+    left: 2px;
+}
+
+.smp {
+    position: absolute;
+    margin: 3px;
+    margin-top: 3.5px;
+    border: none;
+}
+
+.time {
+    margin: 7px;
+    margin-top: 8px;
+    font-size: 11px;
+    border: none;
+}
+
+.fullscreen {
+    right: 5px;
+}
+
+.volume {
+    right: 5px;
+}
+
+.time {
+    font-family: sans-serif;
+    position: absolute;
+    right: 55px;
+}
+
+.play, .pause {
+    float: left;
+}
+
+.smp-video {
+    border: none;
+}
+
+#html5MediaPlayback {
+    position: relative;
+    width: 640px;
+    height: 362px;
+    top: 0px;
+    left: 0px;
+    background-color: #000000;
+}
+
+.video-progress2 {
+    opacity: 1;
+    left: 40px;
+    display: block;
+    position: absolute;
+    padding: 0px;
+    margin: 0px;
+    height: 10px;
+    border: none;
+    margin-top: 12px;
+	
+}
+
+.video-track {
+    margin-top: 0;
+    width: 100%;
+    border: 1px solid #404040;
+    outline: 1px solid #897048;
+    outline-offset: 1px;
+    background: #777777;
+    height: 4px;
+    display: block;
+    position: absolute;
+    z-index: 1;
+    padding-right: 9px;
+	overflow:hidden;
+}
+
+.played {
+    display: block;
+    background-color: #00ADFC;
+    width: 0;
+    left: 0;
+    position: absolute;
+    z-index: 2;
+    height: inherit;
+}
+
+.buffered {
+    display: block;
+    background-color: #557A8E;
+    width: 2px;
+    left: 0;
+    position: absolute;
+    z-index: 2;
+    height: inherit;
+    border-right: 1px solid #ffffff;
+}
+.buffered.done {
+	border: none;
+}
+
+.slider {
+    display: block;
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    left: 0;
+    z-index: 3;
+    margin: 0px;
+    border: 1px solid #000000;
+    outline: 1px solid #897048;
+    outline-offset: 1px;
+    background-color: #D6D6D6;
+    padding: 0 1px;
+    margin-top: -3.5px;
+    opacity: 1;
+}
+
+a.slider:hover, a.slider:active {
+    /*border: 4px solid #000000;*/
+    background-color: #E8E8E8;
+    -moz-box-shadow: 0px 0px 5px #ffffff;
+    -webkit-box-shadow: 0px 0px 5px #ffffff;
+    box-shadow: 0px 0px 5px #ffffff;
+    outline: none;
+}
+
+.smp-error {
+	display:none;
+	position:absolute;
+	top:10%;	
+	padding: 30px;
+}
+
+.disabled {
+	opacity:0.4;
+	display:none;	
+}

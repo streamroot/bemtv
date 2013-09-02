@@ -1,0 +1,279 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+    <head>
+        <title>Strobe Media Playback</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+        <script type="text/javascript" src="lib/swfobject.js">
+        </script>
+        <script type="text/javascript" src="lib/ParsedQueryString.js">
+        </script>
+        <script type="text/javascript" src="lib/debug.js">
+        </script>
+        <script type="text/javascript">
+        	function loadStrobeMediaPlayback()
+        	{
+	            // Collect query parameters in an object that we can
+	            // forward to SWFObject:
+            
+	            var pqs = new ParsedQueryString();
+	            var parameterNames = pqs.params(false);
+	            
+	            var parameters = {
+	                src: "http://mediapm.edgesuite.net/osmf/content/test/manifest-files/dynamic_Streaming.f4m",
+	                autoPlay: false,
+	                controlBarAutoHide: false,
+	                playButtonOverlay: true,
+	                showVideoInfoOverlayOnStartUp: true,
+	                javascriptCallbackFunction: "onJavaScriptBridgeCreated"	
+	            };
+	            
+	            for (var i = 0; i < parameterNames.length; i++) {
+	                var parameterName = parameterNames[i];
+	                parameters[parameterName] = pqs.param(parameterName) ||
+	                parameters[parameterName];
+	            }
+	            
+	            if (parameters.hasOwnProperty("logFilter"))
+	            {
+	            	org.osmf.player.debug.filter = parameters.logFilter;
+	            	delete parameters.logFilter;
+	            	document.getElementById("logFilter").value = org.osmf.player.debug.filter;
+	            }
+	            
+	            var wmodeValue = "direct";
+	            var wmodeOptions = ["direct", "opaque", "transparent", "window"];
+	            if (parameters.hasOwnProperty("wmode"))
+	            {
+	            	if (wmodeOptions.indexOf(parameters.wmode) >= 0)
+	            	{
+	            		wmodeValue = parameters.wmode;
+	            	}	            	
+	            	delete parameters.wmode;
+	            }
+	            
+	            // Embed the player SWF:	            
+	            swfobject.embedSWF(
+					"StrobeMediaPlayback.swf"
+					, "StrobeMediaPlayback"
+					, 640
+					, 480
+					, "10.1.0"
+					, "expressInstall.swf"
+					, parameters
+					, {
+		                allowFullScreen: "true",
+		                wmode: wmodeValue
+		            }
+					, {
+		                name: "StrobeMediaPlayback"
+		            }
+				);
+				
+				
+			}
+			window.onload = loadStrobeMediaPlayback;
+			
+			var player = null;
+			function onJavaScriptBridgeCreated(playerId)
+			{
+				if (player == null) {
+					player = document.getElementById(playerId);
+					
+					// Add event listeners that will update the 
+					player.addEventListener("isDynamicStreamChange", "updateDynamicStreamItems");
+					player.addEventListener("switchingChange", "updateDynamicStreamItems");
+					player.addEventListener("autoSwitchChange", "updateDynamicStreamItems");
+					player.addEventListener("mediaSizeChange", "updateDynamicStreamItems");
+				}
+			}
+			
+			function updateDynamicStreamItems()
+			{
+				document.getElementById("dssc").style.display = "block";
+				var dynamicStreams = player.getStreamItems();
+				var ds = document.getElementById("dssc-items");
+				var switchMode = player.getAutoDynamicStreamSwitch() ? "Auto" : "Manual"; 
+						
+				var dsItems = '<strong><a href="#" onclick="player.setAutoDynamicStreamSwitch(!player.getAutoDynamicStreamSwitch()); return false;"> Switch Mode: ' + switchMode + '</a></strong><br /><br />\n';
+				var currentStreamIndex = player.getCurrentDynamicStreamIndex();
+				
+				for (var idx = 0; idx < dynamicStreams.length; idx ++)
+				{
+					var playing = "";
+					if (currentStreamIndex == idx)
+					{
+						playing = "playing";
+					}
+					dsItems += '<a href="#" class="' + playing + '" onclick="switchDynamicStreamIndex(' + idx + '); return false;">'
+					 + dynamicStreams[idx].streamName 
+					 + ' : ' 
+					 + dynamicStreams[idx].bitrate
+					 + "kbps (" 
+					 + dynamicStreams[idx].width
+					 + "px x " 
+					 + dynamicStreams[idx].height 
+					 + "px)"  
+					 + '</a><br />\n';
+				}
+				ds.innerHTML = dsItems;
+			}
+			
+			function switchDynamicStreamIndex(index)
+			{
+				if (player.getAutoDynamicStreamSwitch())
+				{
+					player.setAutoDynamicStreamSwitch(false);	
+				}
+				player.switchDynamicStreamIndex(index);
+			}
+        </script>
+        <style type="text/css">
+        <!-- .Verdana {
+            font-family: Verdana, Geneva, sans-serif;
+        }
+        	.playing
+			{
+				font-weight:bold;
+			}		
+        -->
+        </style>
+    </head>
+    <body>
+        <table width="100%" border="0" cellspacing="5">
+            <tr>
+                <td valign="top">
+                    <table width="100%" border="0" cellspacing="5">
+                        <tr>
+                            <td valign="top" width="640" colspan="3">
+                                <div id="StrobeMediaPlayback">
+                                    <p>
+                                        Alternative content
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" valign="top">  
+                                <div id="dssc" style="display:none">
+	                                <h4>Video Quality Control</h4>
+									<div id="dssc-items">
+										The available qualities will be loaded once the playback starts...
+									</div>
+								</div>
+								
+                                <h4>logs (the last 50 lines). New logs will be displayed if they match:
+                                <input id="logFilter" value="StrobeMediaPlayback" style="width:100%" onclick="org.osmf.player.debug.clickclear(this, org.osmf.player.debug.filter)" 
+								onblur="org.osmf.player.debug.clickrecall(this, org.osmf.player.debug.filter);" onkeypress="org.osmf.player.debug.filter=this.value;"></input></h4>
+                                <div id="logs" title="Logs" class="metrics" style="overflow: auto; height:400px; width:100%;">
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td id="debugConsole" valign="top" width="100%" height="100%" rowspan="4">
+                    <style type="text/css">
+                        table caption {
+                            caption-side: top;
+                            font-size: 1em;
+                            font-style: italic;
+                            font-weight: bold;
+                            text-align: left;
+                            padding: 0.5em 0;
+                        }
+                        
+                        table.metrics, table.qosObject, table.metadata {
+                            padding: 10px;
+                            width: 100%;
+                        }
+                        
+                        table.metadata {
+                            flow: left;
+                        }
+                    </style>
+                    <div style="position:absolute;right:0px;top:0px;font-size:0.8em">
+                        Press F11 to make the browser window enter/exit full screen.
+                    </div>
+                    <div style="overflow:auto;height:1000px;width:100%">
+                        <table width="100%">
+                            <tr>
+                                <td valign="top">
+                                    <table id="KeyStats" class="metrics">
+                                        <caption>
+                                            Key Statistics
+                                        </caption>
+                                    </table>
+                                </td>
+                                <td valign="top">
+                                    <table id="rendering" class="metrics">
+                                        <caption>
+                                            Rendering Info
+                                        </caption>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td valign="top">
+                                    <table id="ds" class="metrics">
+                                        <caption>
+                                            Dynamic Streaming Info
+                                        </caption>
+                                    </table>
+                                </td>
+                                <td valign="top">
+                                    <table id="buffer" class="metrics">
+                                        <caption>
+                                            Buffer Info
+                                        </caption>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td valign="top" id="qosObjects">
+                                    <table id="PlaybackOptimizationMetrics" class="qosObject">
+                                        <caption>
+                                            PlaybackOptimizationMetrics
+                                        </caption>
+                                    </table>
+                                    <table id="StrobeMediaPlayer" class="qosObject">
+                                        <caption>
+                                            StrobeMediaPlayer
+                                        </caption>
+                                    </table>
+                                </td>
+                                <td valign="top">
+                                    <table id="NetStream" class="qosObject">
+                                        <caption>
+                                            NetStream
+                                        </caption>
+                                    </table>
+                                    <table id="NetStreamInfo" class="qosObject">
+                                        <caption>
+                                            NetStreamInfo
+                                        </caption>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td valign="top" id="other">
+                                    <!--<table id="AssetMetadata" class="metadata">
+                                    <caption>AssetMetadata</caption>
+                                    </table>
+                                    <table id="PluginResource0" class="metadata">
+                                    <caption>PluginResource0</caption>
+                                    </table-->
+                                </td>
+                                <td valign="top">
+                                    <table id="ResourceMetadata" class="metrics">
+                                        <caption>
+                                            Resource Metadata
+                                        </caption>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

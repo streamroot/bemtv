@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="StrobeMediaPlayback" default="all" basedir=".">
+
+	<property environment="env"/>
+	
+	<!-- load external values -->	
+	<property file="${basedir}/build.properties" />
+
+	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" /> 
+	<taskdef resource="flexUnitTasks.tasks"  classpath="${FLEX_UNIT_HOME}/flexUnitTasks-4.1.0_RC2-4.jar"/>
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${buildtools.dir}/libs/ant-contrib-1.0b3.jar"/>
+	
+	<target name="init">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${reports.dir}" />	
+	</target>
+	
+	<!-- cleans the output directory -->
+	<target name="clean.bin">
+		<sequential>
+			<delete includeemptydirs="true" quiet="true">
+				<fileset dir="${source.dir}" includes="**/bin/**/*" />
+			</delete>	
+			<delete includeemptydirs="true" quiet="true">
+				<fileset dir="${source.dir}" includes="**/bin" />
+			</delete>
+		</sequential>		
+	</target>
+
+	<target name="clean">	
+		<antcall target="clean.bin"/>
+		<sequential>
+			<delete includeemptydirs="true" quiet="true">
+				<fileset dir="${dist.dir}" />
+			</delete>
+			<delete includeemptydirs="true" quiet="true">
+				<fileset dir="${build.dir}" />
+			</delete>
+		</sequential>
+	</target>
+	<!-- main -->
+	<target name="all">
+		<antcall target="clean"/>
+		<antcall target="build"/>
+		<!--<antcall target="test"/>-->
+		<antcall target="dist"/>
+		<antcall target="source"/>	
+	</target>
+	
+	<!--
+	<target name="no.test">
+		<antcall target="clean"/>
+		<antcall target="build"/>
+		<antcall target="dist"/>
+		<antcall target="source"/>	
+	</target>
+	-->
+	<target name="build">
+		<antcall target="init"/>
+		<antcall target="clean.bin"/>
+		<antcall target="compile.osmf"/>
+		<antcall target="compile.strobe"/>
+		<antcall target="compile.plugins"/>
+		<antcall target="compile.unittest"/>
+		<antcall target="run.unittest"/>
+	</target>
+	
+	<target name="test">
+		<antcall target="compile.unittest"/>
+		<antcall target="run.unittest"/>
+	</target>
+	
+	<target name="dist">
+		<copy todir="${dist.dir}" overwrite="true" failonerror="false">
+			<fileset dir="${source.dir}/player/StrobeMediaPlayback/bin"/>
+		</copy>
+		<copy todir="${dist.dir}" overwrite="true" failonerror="false">
+			<fileset dir="${source.dir}/plugins/YouTubePlugin/bin"/>
+		</copy>
+		<zip destfile="${dist.dir}/StrobeMediaPlayback_for_Flash_Player_${flash.player.name.to.use}.zip" >
+			<zipfileset dir="${source.dir}/player/StrobeMediaPlayback/bin"  excludes="10.0/**, *.zip, history/**, Flash*.*, MediaPlayback**, dist/**, *Test/**, *.xml, Configuration*, *.swz, NetMocker.*"/>
+		</zip>
+	</target>
+	
+	<target name="source">		
+	  <zip destfile="${source.dir}/../StrobeMediaPlayback_source_code.zip"  >
+		<zipfileset dir="${source.dir}" prefix="StrobeMediaPlayback" excludes="preloader/**, plugins/Youtube*/**, dist/**, build/**, **/bin/**"/>
+	  </zip>
+	  <move file="${source.dir}/../StrobeMediaPlayback_source_code.zip" todir="${dist.dir}" overwrite="true" failonerror="false"/>
+	</target>
+
+	<!-- compile OSMF  -->
+    <target name="compile.osmf">
+		<component.compile project="OSMF" projectDir="${source.dir}/framework/OSMF"/>
+	</target>
+
+	<target name="compile.NetMocker">
+		<replace file="${source.dir}/libs/testing/NetMocker/netmocker-build-config.xml">
+		  <replacetoken><![CDATA[../../../build/lib/OSMF.swc]]></replacetoken>
+		  <replacevalue><![CDATA[../../../framework/OSMF/bin/OSMF.swc]]></replacevalue>
+		</replace>
+		<component.compile project="NetMocker" projectDir="${source.dir}/libs/testing/NetMocker"/>
+    </target>
+	
+	<!-- compile player  -->
+    <target name="compile.strobe">
+		<application.compile project="StrobeMediaPlayback" projectDir="${source.dir}/player/StrobeMediaPlayback" />
+    </target>
+  
+	<!-- compile unit tests  -->
+    <target name="compile.unittest">
+		<antcall target="compile.NetMocker"/>
+		<unittest.compile project="StrobeMediaPlaybackTest" projectDir="${source.dir}/player/StrobeMediaPlaybackTest" />
+    </target>
+
+	<!-- compile plugins   -->
+    <target name="compile.plugins">
+		<antcall target="compile.YouTubePlugin"/>
+	</target>
+	
+	<target name="compile.YouTubePlugin">
+		<plugin.compile project="YouTubePlugin" projectDir="${source.dir}/plugins/YouTubePlugin"/>
+    </target>
+
+
+	<!-- prepare and run unit tests  -->
+	<target name="run.unittest">
+		<unittest.run project="StrobeMediaPlaybackTest" projectDir="${source.dir}/player/StrobeMediaPlaybackTest"/>	
+    </target>
+ 
+  <!-- Define a task for generating the class list for compc from the 
+       appropriate .flexLibProperties file -->
+  <macrodef name="generateClassList">
+    <attribute name="project"/>
+    <attribute name="projectDir"/>
+    <sequential>
+      <xmlproperty file="@{projectDir}/.flexLibProperties" 
+                   prefix="@{project}" 
+                   keepRoot="false" 
+                   collapseAttributes="true"/>
+      <propertyregex property="@{project}.classes" 
+                     input="${@{project}.includeClasses.classEntry.path}"
+                     regexp="," 
+					 replace=" "/>
+    </sequential>
+  </macrodef>
+
+  <!-- Define a task for building a component project. -->
+  <macrodef name="component.compile">
+    <attribute name="project"/>
+	<attribute name="projectDir"/>
+    <sequential>
+	  <generateClassList project="@{project}" projectDir="@{projectDir}"/>	  
+      <compc output="@{projectDir}/bin/@{project}.swc"
+        include-classes="${@{project}.classes}" 
+		optimize="true" 
+		debug="false"
+		fork="false"
+		target-player="${flash.target.player}"
+		>
+			<define name="CONFIG::FLASH_10_1" value="${flash.use.10.1}" />
+			<define name="CONFIG::LOGGING" value="${logging}" />
+			<define name="CONFIG::PLATFORM" value="${platform}" />
+			<define name="CONFIG::MOCK" value="${mock}" />
+			<warnings>true</warnings>
+			<load-config filename="@{projectDir}/@{project}-build-config.xml"/>	
+			<compiler.external-library-path dir="${FLEX_HOME}/frameworks/libs/player/${flash.target.player.base}" append="true">
+			    <include name="playerglobal.swc" />
+			</compiler.external-library-path>
+      </compc>
+
+    </sequential>
+  </macrodef>
+
+
+  <!-- Define a task for compiling an application project. -->
+  <macrodef name="application.compile">
+    <attribute name="project"/>
+    <attribute name="projectDir"/>
+    <sequential>
+      <mxmlc output="@{projectDir}/bin/@{project}.swf"
+             file="@{projectDir}/src/@{project}.as" 
+			 optimize="true" 
+			 debug="${logging}"
+			 fork="false"
+			 target-player="${flash.target.player}"
+			 swf-version="${swfversion}"
+			 >
+        <load-config filename="@{projectDir}/@{project}-build-config.xml"/>	
+		<compiler.external-library-path dir="${FLEX_HOME}/frameworks/libs/player/${flash.target.player.base}" append="true">
+			    <include name="playerglobal.swc" />
+		</compiler.external-library-path>
+		<define name="CONFIG::FLASH_10_1" value="${flash.use.10.1}" />
+		<define name="CONFIG::LOGGING" value="${logging}" />
+		<define name="CONFIG::PLATFORM" value="${platform}" />
+		<define name="CONFIG::MOCK" value="${mock}" />
+      </mxmlc>
+	  
+		<copy todir="@{projectDir}/bin" overwrite="true" failonerror="false">
+			<fileset dir="@{projectDir}/html-template"/>
+		</copy>
+		<move file="@{projectDir}/bin/index.template.html" tofile="@{projectDir}/bin/@{project}.html" overwrite="true"  failonerror="false"/>
+    </sequential>
+  </macrodef>
+
+  <!-- Define a task for compiling a plugin project. -->
+  <macrodef name="plugin.compile">
+    <attribute name="project"/>
+    <attribute name="projectDir"/>
+    <sequential>
+		<mxmlc output="@{projectDir}/bin/@{project}.swf"
+				 file="@{projectDir}/src/@{project}.as" 
+				 optimize="true" 
+				 debug="${logging}"
+				 fork="false"
+				 target-player="${flash.target.player}"
+				 swf-version="${swfversion}">
+			<load-config filename="@{projectDir}/@{project}-build-config.xml"/>
+			<compiler.library-path dir="${build.dir}" append="true">
+					<include name="*.swc" />
+			</compiler.library-path>
+			<compiler.external-library-path dir="${FLEX_HOME}/frameworks/libs/player/${flash.target.player.base}" append="true">
+			    <include name="playerglobal.swc" />
+			</compiler.external-library-path>
+			<define name="CONFIG::FLASH_10_1" value="${flash.use.10.1}" />
+			<define name="CONFIG::LOGGING" value="${logging}" />
+			<define name="CONFIG::PLATFORM" value="${platform}" />
+			<define name="CONFIG::MOCK" value="${mock}" />
+		</mxmlc>
+    </sequential>
+  </macrodef>
+
+	<!-- Define a task for compiling a unit test project. -->
+  <macrodef name="unittest.compile">
+    <attribute name="project"/>
+	<attribute name="projectDir"/>
+    <sequential>
+      <mkdir dir="${build.dir}/@{project}"/>
+      <mxmlc output="@{projectDir}/bin/@{project}.swf"
+             file="@{projectDir}/src/@{project}.mxml" keep-generated-actionscript="true"
+			 debug="${logging}"
+			 fork="false"
+			 target-player="${flash.target.player}"
+			 >
+			 <!-- Deleted from the mxmlc tag:
+			 	* swf-version="${swfversion}"
+				
+				Reason:
+					AIR 2.5 does not support the swf-version 11 or the swf-version parameter.
+				
+				Update:
+					Tried using AIR 2.6, but it appears that FlexUnit doesn't recognize it.
+					
+				Current resolution:
+					Compile the unit tests without swf-version 11.
+				
+				Impact:
+					Tests relying on swf-version 11 API will not work.
+			 -->
+			 
+			<load-config filename="@{projectDir}/@{project}-build-config.xml"/>
+			
+			<!-- List of SWC files or directories that contain SWC files. -->
+            <compiler.library-path dir="${FLEX_HOME}/frameworks" append="true">
+              <include name="libs" />
+			  <include name="libs/air" />
+			  <include name="*.swc" />
+			</compiler.library-path>
+			<!-- compiler.library-path dir="${FLEX_UNIT_HOME}" append="true">
+				<include name="libs/version4libs/Common/*.swc" />  
+				<include name="libs/version4libs/FlexProject/*.swc" />  
+				<include name="locale/version4locale/*.swc" />  
+				<include name="*.swc"/>
+			</compiler.library-path -->
+			<compiler.library-path dir="${FLEX_UNIT_HOME}" append="true">
+			  <include name="*.swc" />
+			</compiler.library-path>		
+			<compiler.external-library-path dir="${FLEX_HOME}/frameworks/libs/player/${flash.target.player.base}" append="true">
+			    <include name="playerglobal.swc" />
+			</compiler.external-library-path>
+		
+		
+			<!-- ADDED BY MIHAI 
+				- fixes the issue regarding unit tests compilation
+			-->
+			<compiler.external-library-path dir="${FLEX_HOME}/frameworks/libs/mx" append="true">
+				<include name="mx.swc" />
+			</compiler.external-library-path>
+			
+		
+			<define name="CONFIG::FLASH_10_1" value="${flash.use.10.1}" />
+			<define name="CONFIG::LOGGING" value="false" />
+			<define name="CONFIG::PLATFORM" value="${platform}" />
+			<define name="CONFIG::MOCK" value="${mock}" />
+			<compiler.verbose-stacktraces>false</compiler.verbose-stacktraces>
+            <compiler.headless-server>true</compiler.headless-server>
+      </mxmlc>
+    </sequential>
+  </macrodef>
+
+
+  <!-- Define a task for running an unit test -->
+  <macrodef name="unittest.run">
+    <attribute name="project"/>
+	<attribute name="projectDir"/>
+    <sequential>
+		<mkdir dir="${reports.dir}/@{project}"/>
+		<!-- flexunit player="air" headless="false" localTrusted="true"
+		  swf="@{projectDir}/bin/@{project}.swf"
+		  toDir="${reports.dir}/@{project}"
+		  haltonfailure="false"
+		  verbose="true"
+		  failureproperty="flexunit.failed"	
+		  timeout = "120000"
+		  / -->
+
+
+		  
+		<!--junitreport todir="${reports.dir}/@{project}">
+			<fileset dir="${reports.dir}/@{project}">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report format="frames" todir="${dist.dir}/test-reports/@{project}"/>
+		</junitreport-->
+		<!-- antcall target="unittest.reports">
+		</antcall -->
+		<junitreport todir="${reports.dir}/@{project}">
+			<fileset dir="${reports.dir}/@{project}">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report format="frames" todir="${dist.dir}/test-reports/@{project}"/>
+		</junitreport>
+		<fail message="One or more flexunit tests failed. See test reports for details."  if="flexunit.failed" />
+    </sequential>
+  </macrodef>
+ 
+   <target name="unittest.reports" if="flexunit.failed">
+
+   </target>
+</project>

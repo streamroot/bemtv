@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skin>
+	<elements basePath="mobile-images/">
+	  <!-- Font -->
+	  <element id="defaultFontSize" value="20" />
+		
+	  <!-- Background elements for the control bar --> 
+	  <element id="controlBarBackdrop" src="SMP_main_background.png"/> <!-- 2 x 35 -->
+	  <element id="controlBarBackdropLeft" src="SMP_main_background_left.png"/> <!-- 2 x 35 -->
+	  <element id="controlBarBackdropRight" src="SMP_main_background_right.png"/> <!-- 2 x 35 -->
+	  
+	  <!-- Scrub Bar elements -->
+	  <element id="scrubBarTrack" src="SMP_scrub_bar_center.png"/>
+	  <element id="scrubBarTrackLeft" src="SMP_scrub_bar_margin.png"/>
+	  <element id="scrubBarTrackRight" src="SMP_scrub_bar_margin.png"/>
+	  <element id="scrubBarLoadedTrack" src="SMP_scrub_bar_loaded.png"/>
+	  <element id="scrubBarLoadedTrackEnd" src="SMP_scrub_bar_margin.png"/>
+	  <element id="scrubBarPlayedTrack" src="SMP_scrub_bar_played.png"/>
+	  <element id="scrubBarPlayedTrackSeeking" src="SMP_scrub_bar_played_seek.png"/>
+
+	  <element id="scrubBarScrubberNormal" src="SMP_scrub_tab.png"/>
+	  <element id="scrubBarScrubberDown" src="SMP_scrub_tab.png"/>
+	  <element id="scrubBarScrubberOver" src="SMP_scrub_tab_over.png"/>
+	  <element id="scrubBarScrubberDisabled" src="SMP_scrub_tab.png"/>
+	  
+	  <!-- Button separator -->
+	  <element id="buttonSeparator" src="SMP_separator.png"/>
+	  <element id="buttonHighlight" src="SMP_button_over_effect.png"/>
+	
+	  <!-- Play Button elements -->
+	  <element id="playButtonNormal" src="SMP_button_play.png"/> <!-- 24 x 24 -->
+	  <element id="playButtonOver" src="SMP_button_play_over.png"/> <!-- 24 x 24 -->
+	  <element id="playButtonDown" src="SMP_button_play_over.png"/> <!-- 24 x 24 -->
+       
+	  <!-- Pause Button states -->
+	  <element id="pauseButtonNormal" src="SMP_button_pause.png"/> <!-- 24 x 24 -->
+	  <element id="pauseButtonDown" src="SMP_button_pause_over.png"/> <!-- 24 x 24 -->
+	  <element id="pauseButtonOver" src="SMP_button_pause_over.png"/> <!-- 24 x 24 -->
+	  
+	  <!-- Back Button-->
+	  <element id="backButtonNormal" src="SMP_button_back.png" /> <!-- 24 x 24 -->
+	  <element id="backButtonDown" src="SMP_button_back_over.png" /> <!-- 24 x 24 -->
+	  <element id="backButtonOver" src="SMP_button_back_over.png" /> <!-- 24 x 24 -->
+	  <element id="backButtonDisabled" src="SMP_button_back.png" /> <!-- 24 x 24 -->
+	  
+	  <!-- Fullscreen Enter -->   
+	  <element id="fullScreenEnterButtonNormal" src="SMP_button_zoomin.png"/> <!-- 20 x 24 -->
+	  <element id="fullScreenEnterButtonOver" src="SMP_button_zoomin_over.png"/> <!-- 20 x 24 -->
+	  <element id="fullScreenEnterButtonDown" src="SMP_button_zoomin_over.png"/> <!-- 20 x 24 -->
+	
+	  <!-- Fullscreen Leave -->
+	  <element id="fullScreenLeaveButtonNormal" src="SMP_button_zoomout.png"/> <!-- 20 x 24 -->
+	  <element id="fullScreenLeaveButtonOver" src="SMP_button_zoomout_over.png"/> <!-- 20 x 24 -->
+	  <element id="fullScreenLeaveButtonDown" src="SMP_button_zoomout_over.png"/> <!-- 20 x 24 -->
+	</elements>
+</skin>

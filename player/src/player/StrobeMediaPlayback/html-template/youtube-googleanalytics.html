@@ -1,0 +1,165 @@
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>YouTube & Google Analytics Sample</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+    <script type="text/javascript" src="lib/ParsedQueryString.js"></script>	
+	<style type="text/css">
+	<!--
+		.playing
+		{
+			font-weight:bold;
+		}
+		
+		#src
+		{
+			width:530px;
+		}
+		
+		div
+		{
+			margin:5px;
+		}
+	-->
+	</style>
+	<script type="text/javascript">
+		var gTrackPluginConfig = 
+		    '<value key="reTrackConfig" type="class" class="com.realeyes.osmf.plugins.tracking.google.config.RETrackConfig">\
+		        <account>UA-7184501-2</account>\
+		        <url>http://osmf.realeyes.com</url>\
+		        <event name="percentWatched" category="video" action="percentWatched">\
+		                <marker percent="0" label="start" />\
+		                <marker percent="25" label="view" />\
+		                <marker percent="50" label="view" />\
+		                <marker percent="75" label="view" />\
+		        </event>\
+		        <event name="complete" category="video" action="complete" label="trackingTesting" value="1" />\
+		        <event name="pageView" />\
+		        <event name="timeWatched" category="video" action="timeWatched">\
+		                <marker time="5" label="start" />\
+		                <marker time="10" label="start" />\
+		                <marker time="20" label="start" />\
+		        </event>\
+		        <debug>true</debug>\
+		        <updateInterval>250</updateInterval>\
+			</value>';
+
+		function loadStrobeMediaPlayback()
+		{
+		
+    		var parameters =
+    			{	
+    				src:"http://www.youtube.com/watch?v=MCLsktSGOVg&feature=related"	   		 			
+				,	controlBarAutoHide: false	
+				,   playButtonOverlay: false				
+				,   loop: true
+				,   autoPlay: false
+				,   verbose: true
+				,   highQualityThreshold: 719
+				, 	plugin_youtube: "YouTubePlugin.swf"
+				,   autoDynamicStreamSwitch: false
+				//, 	autoRewind: false
+				//  Google Analytics settings
+				,   plugin_ga: "GTrackPlugin.swf"				
+				,   "ga_http://www.realeyes.com/osmf/plugins/tracking/google" : escape (gTrackPluginConfig)
+				,   src_namespace_realeyes:"http://www.realeyes.com/osmf/plugins/tracking/google" 
+				,   src_realeyes_pageURL: "YouTube & Google Analytics Sample"	
+				
+				,   javascriptCallbackFunction: "onJavaScriptBridgeCreated"		
+				};
+    		
+    		var pqs = new ParsedQueryString();
+    		var parameterNames = pqs.params(false);
+    		for (var i=0; i<parameterNames.length; i++)
+    		{
+    			var parameterName = parameterNames[i];
+    			parameters[parameterName]
+    				=	pqs.param(parameterName)
+    				||	parameters[parameterName];
+    		}
+    		
+    		document.getElementById("src").value = parameters.src;
+    		
+    		// Embed the player SWF:
+    		
+    		swfobject.embedSWF
+				( "StrobeMediaPlayback.swf"
+				, "StrobeMediaPlayback"
+				, 640, 480
+				, "10.1.0"
+				, "expressInstall.swf" 
+				, parameters
+				, { allowFullScreen: "true", wmode: "direct" }
+				, { name: "StrobeMediaPlayback" }
+				);
+		}
+		window.onload = loadStrobeMediaPlayback;		
+				
+		var player = null;
+		function onJavaScriptBridgeCreated(playerId)
+		{
+			if (player == null) {
+				player = document.getElementById(playerId);
+				
+				// Add event listeners that will update the 
+				player.addEventListener("isDynamicStreamChange", "updateDynamicStreamItems");
+				player.addEventListener("switchingChange", "updateDynamicStreamItems");
+			}
+		}
+		
+		function updateDynamicStreamItems()
+		{
+			var dynamicStreams = player.getStreamItems();
+			var ds = document.getElementById("ds");
+			var dsItems = '';
+			var currentStreamIndex = player.getCurrentDynamicStreamIndex();
+			
+			for (var idx = 0; idx < dynamicStreams.length; idx ++)
+			{
+				var playing = ""; 
+				if (currentStreamIndex == idx)
+				{
+					playing = "playing";
+				}
+				dsItems += '<a href="#" class="' + playing + '" onclick="player.switchDynamicStreamIndex(' + idx + '); return false;">' + dynamicStreams[idx].streamName +' : ' + dynamicStreams[idx].bitrate + '</a><br />\n';
+			}
+			ds.innerHTML = dsItems;
+		}
+		
+     </script>
+ </head>
+ <body>
+    <h1>YouTube & Google Analytics plugins</h1>
+    
+	<div id="notes">
+		<p><strong>Before using the OSMF YouTube plug-in, please review the <a href="http://code.google.com/apis/youtube/terms.html">YouTube API Terms of Service</a>.</strong> (The OSMF YouTube plug-in is built off the YouTube API.)</p>
+
+	</div>
+	
+	<div id="StrobeMediaPlayback">
+	...
+	</div>
+	<div>
+		<br />
+		<form>
+			<input name="src" type="text" id="src"></input> 
+			<input type="submit" value="Load Video"></input> 
+		</form>
+		<br />
+	</div>
+	<h2>Video Quality Control (uses the <a href="https://sourceforge.net/adobe/smp/wiki/JavaScript%20API/">Strobe Media Playback JavaScript API</a>)</h2>
+	<div id="ds">
+		The available qualities will be loaded once the playback starts...
+	</div>
+
+	
+	<div>
+		<h2>References:</h2>
+		<a href="http://code.google.com/apis/youtube/flash_api_reference.html">YouTube ActionScript 3.0 Player API Reference</a>
+		
+		<br />
+		<a href="http://www.realeyes.com/blog/2010/09/27/announcing-google-analytics-plug-in-for-osmf-the-gtrack-plug-in-2">Google Analytics Plug-in For OSMF, The GTrack Plug-in</a>
+		
+	</div>
+  </body>
+</html>

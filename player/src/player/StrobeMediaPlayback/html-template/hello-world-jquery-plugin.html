@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+        <title>Flash/Strobe Media Playback</title>
+        <style type="text/css">
+            body {
+                font: 12px Arial, sans-serif;
+                background-color: #000000;
+                color: #FFFFFF;
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                overflow: hidden;
+            }
+        </style>
+        <script type="text/javascript" src="lib/jquery/jquery-1.4.2.js">
+        </script>
+        <script type="text/javascript" src="jquery.strobemediaplayback.js">
+        </script>
+		<script type="text/javascript" src="lib/swfobject.js">
+        </script>
+		<link type="text/css" href="jquery.strobemediaplayback.css" rel="stylesheet" />
+	   
+		<script type="text/javascript">
+            $(function(){  
+			    
+            	$.fn.adaptiveexperienceconfigurator.rules.push(
+		            // is Firefox
+		            function(context, options){
+		                context.isFirefox = context.userAgent.match(/Firefox/i) != null;
+		                if (context.isFirefox && options.useHTML5) {
+		                    context.setOption(options, "src", "http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.ogg");
+		                }
+		                else {
+		                    context.setOption(options, "src", "http://osmf.org/dev/videos/cathy2_HD.mp4");
+		                }
+		            });
+			              
+                var options={
+					id: "smpVideo",
+					src: "http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4",
+					//src: "http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.ogg",
+					//src: "http://localhost/Psychology 02 - Responsive Brain.mpg",
+					width: 480,
+					height: 362,				
+					poster: "images/poster.png",
+					favorFlashOverHtml5Video: true
+				};			
+                
+								
+				// Using HTMLVideoElement directly
+				//var $video = $(".videoElement");
+				
+				// Using StrobeMediaPlayback
+			    var $video = $(".strobemediaplayback").strobemediaplayback(options);
+
+				
+				$video.bind("durationchange", onDurationChange);
+				$video.bind("timeupdate", onTimeUpdate);
+				
+				$("#play-pause").bind("click", $video, onPlayPauseClick);
+				$("#playlist a").bind("click", $video, onPlaylistItemClick);
+            });
+			
+			function onDurationChange(event)
+			{		
+				$("#duration").html(this.duration);
+			}
+			
+			function onTimeUpdate(event)
+			{
+				$("#currentTime").html(this.currentTime);
+			}
+			
+			function onPlayPauseClick(event)
+			{
+				var video = event.data[0];
+				if (video.paused)
+				{
+					video.play();
+				}
+				else 
+				{
+					video.pause();				
+				}
+			}
+			
+			function onPlaylistItemClick(event)
+			{
+				event.preventDefault();
+				var video = event.data[0];
+				video.src = this.href;
+                video.load();
+                video.play();                
+			}
+        </script>
+    </head>
+    <body>
+    	<!--<video class="video-element" 
+					src="http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.ogg" 
+					width="480"
+					height="362" 				
+					poster="images/poster.png">Alternative content</video> -->		  
+					
+        <div class="strobemediaplayback" 
+				id="strobemediaplayback"
+				data-smp-src="http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4"
+				data-smp-width="480"
+				data-smp-height="362"
+				data-smp-poster="images/poster.png"
+				data-smp-favorFlashOverHtml5Video="false">Alternative content</div>
+
+		  
+		<div>
+			<div>
+				<span id="currentTime" /> ... </span> : <span id="duration" /> ... </span>
+			</div>   
+			<a href="#" id="play-pause">Play/Pause</div>  
+		</div>	
+		<div id="playlist">	
+			<a href="http://osmf.org/dev/videos/cathy1_SD.mp4">OSMF SD</a>
+	        <br/>
+	        <a href="http://osmf.org/dev/videos/cathy1_HD.mp4">OSMF HD</a>
+	        <br/>
+	        <a href="http://osmf.org/dev/videos/cathy2_SD.mp4">SMP SD</a>
+	        <br/>
+	        <a href="http://osmf.org/dev/videos/cathy2_HD.mp4">SMP HD</a>
+	        <br/>
+	        <a href="http://media.w3.org/2010/05/sintel/trailer.mp4">http://media.w3.org/2010/05/sintel/trailer.mp4</a>
+	        <br/>
+	        <a href="http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4">http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4</a>
+	        <h3>OGG files, for Firefox HTML5 only</h3>
+	        <a href="http://media.w3.org/2010/05/sintel/trailer.ogv">http://media.w3.org/2010/05/sintel/trailer.ogv</a>
+	        <br/>
+	        <a href="http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.ogg">http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.ogg</a>
+	        <br/>	
+		</div>    
+    </body>
+</html>

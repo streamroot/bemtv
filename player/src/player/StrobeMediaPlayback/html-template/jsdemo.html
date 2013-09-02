@@ -1,0 +1,611 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+    <title>Strobe Media Playback</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	<link type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" />	
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js"></script>	
+	<script type="text/javascript" src="http://flesler-plugins.googlecode.com/files/jquery.scrollTo-1.4.2-min.js"></script>
+	
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>	
+	<link type="text/css" href="jsdemo.css" rel="stylesheet" />
+
+  	<script type="text/javascript" src="lib/ParsedQueryString.js"></script>
+  	<script type="text/javascript" src="jsdemo.js"></script>
+		
+    <script type="text/javascript">
+    
+    		// Collect query parameters in an object that we can
+    		// forward to SWFObject:
+    		
+    		var pqs = new ParsedQueryString();
+    		var parameterNames = pqs.params(false);
+    		var parameters =
+    			{	src:"http://mediapm.edgesuite.net/osmf/content/test/manifest-files/dynamic_Streaming.f4m"	   		
+	   			,	autoPlay: true	   		
+				,	controlBarAutoHide: false
+				,	poster: "images/poster.png"
+				,   javascriptCallbackFunction: "onJavaScriptBridgeCreated"
+    			};
+    				
+    		for (var i=0; i<parameterNames.length; i++)
+    		{
+    			var parameterName = parameterNames[i];
+    			parameters[parameterName]
+    				=	pqs.param(parameterName)
+    				||	parameters[parameterName];
+    		}    	
+			
+			// Embed the player SWF:
+    		swfobject.embedSWF
+				( "StrobeMediaPlayback.swf"
+				, "strobeMediaPlayback"
+				, 640 
+				, 480 
+				, "10.1.0" 
+				, "expressInstall.swf" 
+				, parameters
+				, { allowFullScreen: "true", wmode: "opaque" }
+				, { name: "strobeMediaPlayback" }				
+			);		
+
+			org.strobemediaplayback.InteractiveCC = function(player, captionArea, subtitleArea)
+			{
+				this.player = player;	
+				this.captionArea = captionArea;
+				this.subtitleArea = subtitleArea;
+				this.oldSelected = null;
+				this.timer = null;
+				this.refreshTimer = null;
+				this.refreshArea = true;
+			
+				this.bindCaptionArea(this.captionArea);	
+			};
+			
+			org.strobemediaplayback.prependTimeStamp = function (divId)
+			{
+				$(divId).find('p')
+					.each(
+						function()
+						{		
+								$(this).prepend( $(this).attr("begin") + " ");
+						}
+					);
+			};
+			
+			org.strobemediaplayback.timeToSec = function (t)
+			{
+				var s=t.split(':');
+				return parseInt(s[2],10) + 60.0 * parseInt(s[1],10) + 3600.0* parseInt(s[0],10);
+			};
+
+			org.strobemediaplayback.secondsToHms = function (d) 
+			{
+					d = Number(d);
+					var h = Math.floor(d / 3600);
+					var m = Math.floor(d % 3600 / 60);
+					var s = Math.floor(d % 3600 % 60);
+					return ((h < 10 ? "0" : "") + h + ":"+ (m < 10 ? "0" : "") + m + ":"+ (s < 10 ? "0" : "") + s);
+			};
+			
+			org.strobemediaplayback.InteractiveCC.prototype = 
+		 	{
+				bindCaptionArea: function(newCaptionArea)
+				{
+					var oldThis = this;
+					this.captionArea.unbind();
+					this.captionArea.find('p')
+					.each(
+						function()
+						{		
+								$(this).unbind();
+						}
+					);
+					
+					this.captionArea = newCaptionArea;
+					this.captionArea.bind('mouseout', this, this.onExitArea);
+					this.captionArea.bind('mouseover', this, this.onEnterArea);
+					
+					this.captionArea.find('p')
+					.each(
+						function()
+						{		
+								$(this).bind('click', oldThis, oldThis.onJump);
+								$(this).bind('mouseover', oldThis, oldThis.onOver);	
+								$(this).bind('mouseout', oldThis, oldThis.onOut);	
+						}
+					);	
+				},
+				
+				getCurrentSub: function(currentPos) 
+				{
+					var lastSubtitleTime = "";
+					this.captionArea.find('p')
+							.each(
+								function()
+								{		
+										var subtitleTime = org.strobemediaplayback.timeToSec($(this).attr("begin"));
+										if (currentPos >= subtitleTime)
+										{
+											lastSubtitleTime=$(this).attr("begin");
+										}
+								}
+							);
+					
+					return lastSubtitleTime;
+				},
+
+				onCurrentTimeChange: function (currentTime, duration)
+				{				
+					var oldThis= this;
+					var newSelected = this.getCurrentSub(currentTime);
+					
+					if (newSelected!=this.oldSelected)
+					{
+						clearTimeout(this.timer);
+						$('p[begin="'+this.oldSelected+'"]', this.captionArea).removeClass('ccc');
+						this.oldSelected = newSelected;
+						
+						$('p[begin="'+this.oldSelected+'"]', this.captionArea).addClass('ccc');
+						
+						
+						var cc = $('p[begin="'+this.oldSelected+'"]', this.captionArea).html();
+						cc = cc.substring(cc.indexOf(" "));
+					
+						this.subtitleArea.html(cc);
+						var subtitleEnd = $('p[begin="'+this.oldSelected+'"]', this.captionArea).attr("end");
+						var subtitleBegin = $('p[begin="'+this.oldSelected+'"]', this.captionArea).attr("begin");
+						if (subtitleEnd!=undefined && subtitleEnd != "")
+						{
+							this.timer = setTimeout( function()
+								{
+									oldThis.subtitleArea.empty();
+								},
+								1000.0*(org.strobemediaplayback.timeToSec(subtitleEnd)-currentTime)
+							);
+						}
+						
+						if (this.refreshArea)
+						{
+							this.captionArea.scrollTo($('p[begin="'+this.oldSelected+'"]', this.captionArea), {duration: 600, over:{top:-10}} );
+						}
+						
+					}
+				},
+				
+				////
+				onJump: function (event)
+				{					
+					var player = event.data.player;
+					var jumpPos = $(event.currentTarget).attr("begin");
+					var subtitleEnd = $(event.currentTarget).attr("end");
+
+					var nrSec = org.strobemediaplayback.timeToSec(jumpPos);
+					if (player.getState() != "ready" && player.canSeekTo(nrSec))
+							{
+								clearTimeout(event.data.timer);
+								$("p[begin='"+jumpPos+"']", event.data.captionArea).addClass('ccc');
+								if (event.data.oldSelected != "" && event.data.oldSelected != jumpPos) 
+								{
+									$('p[begin="'+ event.data.oldSelected +'"]', event.data.captionArea).removeClass('ccc');
+									event.data.subtitleArea.empty();
+								}
+								event.data.oldSelected = jumpPos;
+								var cc = $('p[begin="'+event.data.oldSelected+'"]', event.data.captionArea).html();
+								cc = cc.substring(cc.indexOf(" "));
+								event.data.subtitleArea.html(cc);
+								player.seek(nrSec);
+								if ( subtitleEnd!=undefined && subtitleEnd != "")
+									{
+										
+										event.data.timer = setTimeout( function()
+											{
+												event.data.subtitleArea.empty();
+											},
+											1000.0 * (org.strobemediaplayback.timeToSec(subtitleEnd) - org.strobemediaplayback.timeToSec(jumpPos))
+										);
+									}
+							}	
+							else
+							{
+								return false;
+							}		
+					//$("#debug2").append("<br />seek=" + nrSec);
+				},
+				
+				onOver: function (event)
+				{
+					$(event.currentTarget).addClass('hovercc');
+					
+				},
+				
+				onOut: function (event)
+				{
+					$(event.currentTarget).removeClass('hovercc');
+				},
+				
+				onEnterArea: function (event)
+				{
+					clearTimeout(event.data.refreshTimer);
+					event.data.refreshArea = false;
+				},
+				
+				onExitArea: function (event)
+				{
+					event.data.refreshTimer = setTimeout( function()
+						{
+							event.data.refreshArea = true;
+						},
+						2000
+					)
+				}
+
+			}
+			var player = null;
+			function onJavaScriptBridgeCreated(id)
+			{			
+				if (player == null) 
+				{
+					player = document.getElementById(id);
+					
+					org.strobemediaplayback.players[id] = new org.strobemediaplayback.StrobeMediaPlaybackJSUI(player, $("#" + id + "ControlBar"));
+					
+					org.strobemediaplayback.bindListeners(player, org.strobemediaplayback.players[id], "org.strobemediaplayback.players['" + id + "']");
+					
+					org.strobemediaplayback.players[id].cc = new org.strobemediaplayback.InteractiveCC(player, $("#dsCC"), $("#subtext"));
+					org.strobemediaplayback.bindListeners(player, org.strobemediaplayback.players[id].cc, "org.strobemediaplayback.players['" + id + "'].cc");
+				}				
+			}
+     </script>
+     
+     
+  	<style type="text/css">
+	<!--
+	.Verdana {
+		font-family: Verdana, Geneva, sans-serif;
+	}
+	.ccc
+	{
+		color:red;
+		font-weight:bold;
+	}
+	.hovercc
+	{
+		background-color: #f0f0f0;
+	}
+	.subtext
+	{
+		color:lightgrey;
+		text-align: center;
+		background-color: black;
+		top : 500px;
+		left : 100px;
+		position: absolute;
+		width: 450px;
+		padding: 3px;
+		z-index:100;
+	}
+
+	-->
+	</style>
+ 	</head>
+	<body>
+	<table width="100%" border="0" cellspacing="5">
+  <tr>
+    <td width="43"><img src="images/adobe-lq.png" alt="" width="43" height="72" /></td>
+    <td width="320" class="Verdana">Strobe Media Playback</td>
+    <td width="262"><img src="images/osmf_horizontal_red.png" width="262" height="57"/></td>
+    <td width="*"></td>
+  </tr>
+</table>
+<table width="100%" border="0" cellspacing="5">
+  <tr>
+    <td width=660>
+	<div id="strobeMediaPlayback">
+      <p>Alternative content</p>
+    </div>
+	<div id="strobeMediaPlaybackControlBar" class="smp-controls">		
+			<div class="smp-top-container ui-widget-header">
+				<button class="smp-play">play</button>	
+				
+				
+				<span class="smp-volume-control">
+					<button class="smp-mute">on</button>						
+					<div class="smp-volume" > </div>
+				</span>	
+				<span class="smp-time">0:00 / 0:00</span>	
+				<span class="smp-mbr">
+					<button class="smp-mbr-indicator">HD</button>	
+					<div class="smp-mbr-items">
+					
+					</div>
+				</span>
+			</div>
+			<div class="smp-progress"></div>
+	</div>
+	<div id="subtext" class="subtext">
+      
+    </div>
+    </td>
+	<td align="left">		
+		<div id="dsCC" style="overflow: auto; width:750px; height:550px; font-size: 1.2em;">
+			<p begin='00:00:15' end='00:00:18'>At the left we can see...</p>
+			<p begin='00:00:18' end='00:00:20'>At the right we can see the...</p>
+			<p begin='00:00:20' end='00:00:22'>...the head-snarlers</p>
+			<p begin='00:00:22' end='00:00:24'>Everything is safe.  Perfectly safe.</p>
+			<p begin='00:00:24' end='00:00:27'>Emo?</p>
+			<p begin='00:00:28' end='00:00:30'>Watch out!</p>
+			<p begin='00:00:47' end='00:00:48'>Are you hurt?</p>
+			<p begin='00:00:52' end='00:00:54'>I don't think so.  You?</p>
+			<p begin='00:00:55' end='00:00:57'>I'm Ok.</p>
+			<p begin='00:00:57' end='00:01:01'>Get up.  Emo, it's not safe here.</p>
+			<p begin='00:01:02' end='00:01:03'>Let's go.</p>
+			<p begin='00:01:03' end='00:01:05'>What's next?</p>
+			<p begin='00:01:05' end='00:01:09'>You'll see!</p>
+			<p begin='00:01:12' end='00:01:14'>(howling wind)</p>
+			<p begin='00:01:16' end='00:01:18'>Emo.  This way.</p>
+			<p begin='00:01:34' end='00:01:35'>Follow me!</p>
+			<p begin='00:01:39' end='00:01:42'>(buzzing wires and chattery conversations)</p>
+			<p begin='00:02:11' end='00:02:12'>Hurry Emo!</p>
+			<p begin='00:02:20' end='00:02:22'>(louder telephone voices)</p>
+			<p begin='00:02:32' end='00:02:34'>(phone ringing)</p>
+			<p begin='00:02:48' end='00:02:50'>You're not paying attention!</p>
+			<p begin='00:02:50' end='00:02:54'>I just want to answer the...  ...phone.</p>
+			<p begin='00:02:55' end='00:02:58'>Emo, look,  I mean listen.</p>
+			<p begin='00:02:59' end='00:03:02'>You have to learn to listen.</p>
+			<p begin='00:03:03' end='00:03:05'>This is not some game.</p>
+			<p begin='00:03:05' end='00:03:09'>You, i mean we,  we could easily die out here.</p>
+			<p begin='00:03:10' end='00:03:14'>Listen,  listen to the sounds of the machine.</p>
+			<p begin='00:03:18' end='00:03:20'>Listen to your breathing.</p>
+			<p begin='00:03:27' end='00:03:29'>(Buzzing wires)</p>
+			<p begin='00:03:34' end='00:03:36'>(laughing)</p>
+			<p begin='00:04:13' end='00:04:15'>(oriental dance music)</p>
+			<p begin='00:04:27' end='00:04:29'>Well, don't you ever get tired of this?</p>
+			<p begin='00:04:29' end='00:04:31'>Tired?!?</p>
+			<p begin='00:04:31' end='00:04:34'>Emo, the machine is like clockwork.</p>
+			<p begin='00:04:35' end='00:04:37'>One move out of place...</p>
+			<p begin='00:04:37' end='00:04:39'>...and you're ground to a pulp.</p>
+			<p begin='00:04:41' end='00:04:42'>But isn't it -</p>
+			<p begin='00:04:42' end='00:04:46'>Pulp, Emo!  Is that what you want, pulp?</p>
+			<p begin='00:04:47' end='00:04:49'>Emo, your goal in life...</p>
+			<p begin='00:04:50' end='00:04:52'>...pulp?</p>
+			<p begin='00:05:08' end='00:05:10'>(loud metal sounds)</p>
+			<p begin='00:05:41' end='00:05:43'>Emo, close your eyes.</p>
+			<p begin='00:05:44' end='00:05:46'>Why?  - Now!</p>
+			<p begin='00:05:51' end='00:05:52'>Ok.</p>
+			<p begin='00:05:53' end='00:05:54'>Good.</p>
+			<p begin='00:05:59' end='00:06:02'>What do you see at your left side, Emo?</p>
+			<p begin='00:06:04' end='00:06:06'>Nothing.  - Really?</p>
+			<p begin='00:06:06' end='00:06:07'>No, nothing at all.</p>
+			<p begin='00:06:08' end='00:06:12'>And at your right,  what do you see at your right side, Emo?</p>
+			<p begin='00:06:13' end='00:06:16'>The same Proog, exactly the same...</p>
+			<p begin='00:06:17' end='00:06:19'>...nothing!  - Great.</p>
+			<p begin='00:06:25' end='00:06:27'>(sound of camera flash)</p>
+			<p begin='00:06:29' end='00:06:31'>(engine drone)</p>
+			<p begin='00:06:40' end='00:06:42'>Listen Proog! Do you hear that!  (amusement park music)</p>
+			<p begin='00:06:43' end='00:06:45'>Can we go here?</p>
+			<p begin='00:06:45' end='00:06:48'>There?  It isn't safe, Emo.</p>
+			<p begin='00:06:49' end='00:06:52'>But...  - Trust me, it's not.</p>
+			<p begin='00:06:53' end='00:06:54'>Maybe I could...</p>
+			<p begin='00:06:54' end='00:06:56'>No.</p>
+			<p begin='00:06:57' end='00:07:00'>NO!</p>
+			<p begin='00:07:00' end='00:07:03'>Any further questions, Emo?</p>
+			<p begin='00:07:04' end='00:07:05'>No.</p>
+			<p begin='00:07:09' end='00:07:10'>Emo?</p>
+			<p begin='00:07:11' end='00:07:13'>Emo, why...</p>
+			<p begin='00:07:13' end='00:07:14'>Emo...</p>
+			<p begin='00:07:14' end='00:07:18'>...why can't you see  the beauty of this place?</p>
+			<p begin='00:07:18' end='00:07:20'>The way it works.</p>
+			<p begin='00:07:20' end='00:07:24'>How perfect it is.</p>
+			<p begin='00:07:24' end='00:07:27'>No, Proog, I don't see.</p>
+			<p begin='00:07:27' end='00:07:30'>I don't see because there's nothing there.</p>
+			<p begin='00:07:31' end='00:07:35'>And why should I trust my  life to something that isn't there?</p>
+			<p begin='00:07:35' end='00:07:37'>Well can you tell me that?</p>
+			<p begin='00:07:37' end='00:07:39'>Answer me!</p>
+			<p begin='00:07:43' end='00:07:44'>Proog...</p>
+			<p begin='00:07:45' end='00:07:47'>...you're a sick man!</p>
+			<p begin='00:07:47' end='00:07:49'>Stay away from me!</p>
+			<p begin='00:07:52' end='00:07:55'>No! Emo! It's a trap!</p>
+			<p begin='00:07:55' end='00:07:57'>Hah, it's a trap.</p>
+			<p begin='00:07:57' end='00:08:01'>At the left side you can see|the hanging gardens of Babylon!</p>
+			<p begin='00:08:02' end='00:08:04'>How's that for a trap?</p>
+			<p begin='00:08:05' end='00:08:07'>No, Emo.</p>
+			<p begin='00:08:09' end='00:08:12'>At the right side you can see...  ...well guess what...</p>
+			<p begin='00:08:13' end='00:08:14'>...the colossus of Rhodes!</p>
+			<p begin='00:08:15' end='00:08:16'>No!</p>
+			<p begin='00:08:16' end='00:08:22'>The colossus of Rhodes  and it is here just for you Proog.</p>
+			<p begin='00:08:51' end='00:08:53'>It is there...</p>
+			<p begin='00:08:53' end='00:08:56'>I'm telling you,  Emo...</p>
+			<p begin='00:08:57' end='00:09:00'>...it is.</p>
+			<p begin='00:09:05' end='00:09:07'>(howling wind)</p>
+
+		</div>
+	</td>
+  </tr>
+  <tr>
+      <td>	
+		<style type="text/css"> 
+			#demo-frame > div.demo { padding: 10px !important; }
+			.scroll-pane { overflow: auto; width: 640px; float:left; }
+			.scroll-content { width: 1350px; float: left; }
+			.scroll-content-item { width: 100px; height: 100px; float: left; margin: 10px; font-size: 3em; line-height: 96px; text-align: center; }
+			.scroll-content-item { display: inline; } /* IE6 float double margin bug */
+			.scroll-bar-wrap { clear: left; padding: 0 4px 0 2px; margin: 0 -1px -1px -1px; }
+			.scroll-bar-wrap .ui-slider { background: none; border:0; height: 2em; margin: 0 auto;  }
+			.scroll-bar-wrap .ui-handle-helper-parent { position: relative; width: 100%; height: 100%; margin: 0 auto; }
+			.scroll-bar-wrap .ui-slider-handle { top:.2em; height: 1.5em; }
+			.scroll-bar-wrap .ui-slider-handle .ui-icon { margin: -8px auto 0; position: relative; top: 50%; }
+			.smp-playlist-thumbnail { max-width: 80px; max-height: 80px; }
+		</style> 
+		<script type="text/javascript"> 
+			$(function() 
+			{
+				//scrollpane parts
+				var scrollPane = $('.scroll-pane');
+				var scrollContent = $('.scroll-content');
+				
+				//build slider
+				var scrollbar = $(".scroll-bar").slider({
+					slide:function(e, ui){
+						if( scrollContent.width() > scrollPane.width() ){ scrollContent.css('margin-left', Math.round( ui.value / 100 * ( scrollPane.width() - scrollContent.width() )) + 'px'); }
+						else { scrollContent.css('margin-left', 0); }
+					}
+				});
+				
+				//append icon to handle
+				var handleHelper = scrollbar.find('.ui-slider-handle')
+				.mousedown(function(){
+					scrollbar.width( handleHelper.width() );
+				})
+				.mouseup(function(){
+					scrollbar.width( '100%' );
+				})
+				.append('<span class="ui-icon ui-icon-grip-dotted-vertical"></span>')
+				.wrap('<div class="ui-handle-helper-parent"></div>').parent();
+				
+				//change overflow to hidden now that slider handles the scrolling
+				scrollPane.css('overflow','hidden');
+				
+				//size scrollbar and handle proportionally to scroll distance
+				function sizeScrollbar(){
+					var remainder = scrollContent.width() - scrollPane.width();
+					var proportion = remainder / scrollContent.width();
+					var handleSize = scrollPane.width() - (proportion * scrollPane.width());
+					scrollbar.find('.ui-slider-handle').css({
+						width: handleSize,
+						'margin-left': -handleSize/2
+					});
+					handleHelper.width('').width( scrollbar.width() - handleSize);
+				}
+				
+				//reset slider value based on scroll content position
+				function resetValue(){
+					var remainder = scrollPane.width() - scrollContent.width();
+					var leftVal = scrollContent.css('margin-left') == 'auto' ? 0 : parseInt(scrollContent.css('margin-left'));
+					var percentage = Math.round(leftVal / remainder * 100);
+					scrollbar.slider("value", percentage);
+				}
+				//if the slider is 100% and window gets larger, reveal content
+				function reflowContent(){
+						var showing = scrollContent.width() + parseInt( scrollContent.css('margin-left') );
+						var gap = scrollPane.width() - showing;
+						if(gap > 0){
+							scrollContent.css('margin-left', parseInt( scrollContent.css('margin-left') ) + gap);
+						}
+				}
+				
+				//change handle position on window resize
+				$(window)
+				.resize(function(){
+						resetValue();
+						sizeScrollbar();
+						reflowContent();
+				});
+				//init scrollbar size
+				setTimeout(sizeScrollbar,10);//safari wants a timeout
+			});
+		</script> 
+	
+		<div class="scroll-pane ui-widget ui-widget-header ui-corner-all"> 
+			<div class="scroll-content"> 
+			
+			    <script type="text/javascript"> 
+					// Construct the HTML required to reload with any of the
+					// listed media links:
+					
+					$(function()
+					{
+						org.strobemediaplayback.prependTimeStamp("#dsCC");
+					});
+					
+					$('#dsCC').show();		
+					var linkingCode = "";
+					function changeSrc(url)
+					{
+						$('.smp-mbr-items').hide();
+						$('#subtext').hide();	
+						$('#dsCC').hide();	
+						
+						if (url == "http://mediapm.edgesuite.net/osmf/content/test/manifest-files/dynamic_Streaming.f4m")
+						{
+							$('#subtext').show();
+							$('#dsCC').show();
+						}
+						
+						org.strobemediaplayback.players.strobeMediaPlayback.player.setMediaResourceURL(
+						url);	
+					}
+					
+					var links
+						= 	[ "http://mediapm.edgesuite.net/osmf/content/test/manifest-files/dynamic_Streaming.f4m"
+							, "rtmp://cp67126.edgefcs.net/ondemand/mediapm/osmf/content/test/akamai_10_year_f8_512K"
+							, "http://mediapm.edgesuite.net/osmf/content/test/manifest-files/progressive.f4m"
+							, "http://mediapm.edgesuite.net/osmf/content/test/train_1500.mp3"
+							, "http://mediapm.edgesuite.net/strobe/content/test/AFaerysTale_sylviaApostol_640_500_short.flv"
+							, "http://mediapm.edgesuite.net/strobe/content/test/AFaerysTale_sylviaApostol_640_500_short.flv"					
+							, "http://mediapm.edgesuite.net/strobe/content/test/AFaerysTale_sylviaApostol_640_500_short.flv"
+							, "http://mediapm.edgesuite.net/strobe/content/test/AFaerysTale_sylviaApostol_640_500_short.flv"
+							, "http://mediapm.edgesuite.net/strobe/content/test/AFaerysTale_sylviaApostol_640_500_short.flv"
+							, "http://mediapm.edgesuite.net/strobe/content/test/AFaerysTale_sylviaApostol_640_500_short.flv"
+							, "http://mediapm.edgesuite.net/strobe/content/test/AFaerysTale_sylviaApostol_640_500_short.flv"
+							];
+					
+					var thumbs
+						= 	[ "images/dynstream.png"
+							, "images/playlist.jpg"
+							, "images/progressive.png"
+							, "images/music.jpg"
+							, "images/tooth.png"
+							, "images/tooth.png"
+							, "images/tooth.png"
+							, "images/tooth.png"
+							, "images/tooth.png"
+							, "images/tooth.png"
+							, "images/tooth.png"
+							];
+												
+					for (var i=0; i<links.length; i++)
+					{
+						var link = links[i];
+						var thumb = thumbs[i];
+						linkingCode = linkingCode
+							+ '<div class="scroll-content-item ui-widget-header">'
+							+ '<a href=\'javascript:changeSrc("'
+							+ encodeURI(link)
+							+'")\'>'
+							+ '<img  class="smp-playlist-thumbnail" src="'
+							+ encodeURI(thumb)
+							+ '"></a>'
+							+ '</div>';
+					}
+					
+					document.write(linkingCode);
+				</script> 
+			</div> 
+			<div class="scroll-bar-wrap ui-widget-content ui-corner-bottom"> 
+				<div class="scroll-bar"></div> 
+			</div> 
+		</div> 
+    </td>
+    <td>	
+	 	<script type="text/javascript"
+		  src="http://jqueryui.com/themeroller/themeswitchertool/">
+		</script>
+		<div id="switcher" ></div>
+		<script type="text/javascript">
+		$(
+			function()
+			{
+				$('#switcher').themeswitcher();
+			}
+		);	
+		</script>
+		
+		<div id="debug2" style="height:300px;"></div>
+	</td>
+  </tr>	
+</table>
+
+  </body>
+</html>

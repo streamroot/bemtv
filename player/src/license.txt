@@ -1,0 +1,5 @@
+Strobe Media Playback is covered under the BSD Licence. See file BSD-License.txt
+
+OSMF and NetMocker are covered under version 1.1 of the MPL Licence. You may obtain a copy of the License at http://www.mozilla.org/MPL/ 
+
+The font we used by the player, Playback Sans, is released under the SIL Open Font License - see file player/StrobeMediaPlayback/assets/font/PlaybackSansEULA.txt

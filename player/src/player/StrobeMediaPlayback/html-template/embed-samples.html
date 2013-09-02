@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+        <title>Flash/Strobe Media Playback - iframe embed sample</title>
+    </head>
+    <body>
+        <h1>Strobe Media Playback for Flash and HTML5 &lt;video&gt;</h1>
+        <h2>&lt;iframe&gt; embed code</h2>
+		<p>The simplest embed strategy is using iframes. This is likely to become a standard across major video sites.</p>
+        <h3>Sample embed code</h3>
+        <pre>	
+        &lt:iframe src="embed.html?
+			src=http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4" 
+			class="strobemediaplayback-video-player" type="text/html" 
+			width="833" 
+			height="641"&gt;
+        &lt:/iframe&gt;			
+		</pre>
+        <h3>Live Demos</h3>
+        <a href="strobemediaplayback-iframe-embed.html">Basic embed code sample</a>
+        <br/>
+        <!--a href="strobemediaplayback-iframe-embed-advanced.html"></a-->
+		<hr />
+        <h2>jQuery plugin</h2>
+		<p>As a web designer, you might want to use our jQuery plugin instead of the iframe. Like this you have complete control over the video playback and the experience arround the player.</p>
+		<p>Using the jQuery snippet also saves a HTTP request, so if you have control over the pages where the video is hosted this approach is much better.</p>
+        <h3>Sample embed code</h3>
+        <pre>        	
+            &lt;div id="strobemediaplayback" style="width:640px; height:480px"&gt;&lt;/div&gt;
+			&lt;script type="text/javascript" src="lib/swfobject.js"&gt;&lt;/script&gt;
+            &lt;script type="text/javascript" src="lib/jquery/jquery-1.4.2.js"&gt;&lt;/script&gt;
+            &lt;script type="text/javascript" src="jquery.strobemediaplayback.js"&gt;&lt;/script&gt;
+            
+            &lt;script type="text/javascript"&gt;
+            $(function(){
+                var options = {
+                    src: "http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4",
+                    width: 640,
+                    height: 480
+                };
+                // Now we are ready to generate the video tags
+                $("#strobemediaplayback").strobemediaplayback(options);
+            });
+            &lt;/script&gt;		
+		</pre>
+        <h3>Live Demos</h3>
+        <a href="embed.html">jQuery basic sample</a>
+        <br/>
+        <a href="embed.html?favorFlashOverHtml5Video=false">jQuery basic sample - favor HTML5 &lt;video&gt; playback - embed.html?favorFlashOverHtml5Video=false</a>
+		<hr />
+		<h2>Custom Chrome</h2>
+		<h3>Instead of using the default browser chrome it is possible to use a custom control bar. Like this you have full control over the playback controls look and feel.</h3>
+     
+		
+	    <h3>Live Demos</h3>
+        <a href="jquery-custom-chrome.html">Favor Flash over HTML5 video (default)</a>
+        <br/>
+		<a href="jquery-custom-chrome.html?favorFlashOverHtml5Video=false">Favor Html5 video over Flash</a>
+        <br/>
+		
+		
+    </body>
+</html>
