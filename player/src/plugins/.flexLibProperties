@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
+  <includeClasses>
+    <classEntry path="org.denivip.osmf.plugins.HLSPluginInfo"/>
+    <classEntry path="org.denivip.osmf.elements.M3U8Loader"/>
+    <classEntry path="org.denivip.osmf.elements.M3U8Element"/>
+    <classEntry path="org.denivip.osmf.elements.m3u8Classes.M3U8PlaylistParser"/>
+    <classEntry path="org.denivip.osmf.elements.m3u8Classes.M3U8Playlist"/>
+    <classEntry path="org.denivip.osmf.elements.m3u8Classes.M3U8Item"/>
+    <classEntry path="org.denivip.osmf.net.HLSDynamicStreamingResource"/>
+    <classEntry path="org.denivip.osmf.net.HLSDynamicStreamingItem"/>
+    <classEntry path="org.denivip.osmf.logging.HLSLogger"/>
+    <classEntry path="org.denivip.osmf.logging.HLSLoggerFactory"/>
+    <classEntry path="org.denivip.osmf.logging.LogHandler"/>
+    <classEntry path="org.denivip.osmf.logging.LogMessage"/>
+    <classEntry path="org.denivip.osmf.logging.TraceLogHandler"/>
+    <classEntry path="org.denivip.osmf.logging.GALogHandler"/>
+    <classEntry path="org.denivip.osmf.metadata.HLSMetadata"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>
