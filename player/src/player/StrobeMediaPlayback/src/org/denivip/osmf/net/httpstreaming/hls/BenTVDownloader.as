@@ -19,8 +19,6 @@ package org.denivip.osmf.net.httpstreaming.hls
 	
 	import org.denivip.osmf.net.httpstreaming.hls.BenTVURLStream;
 	
-	import flash.external.ExternalInterface;
-	
 	CONFIG::LOGGING
 	{
 		import org.osmf.logging.Logger;
@@ -105,7 +103,6 @@ package org.denivip.osmf.net.httpstreaming.hls
 		 **/
 		public function open(request:URLRequest, dispatcher:IEventDispatcher, timeout:Number):void
 		{
-			ExternalInterface.call("console.log", "BenTVDownloader - Asking for " + request.url);
 			if (isOpen || (_urlStream != null && _urlStream.connected))
 				close();
 			

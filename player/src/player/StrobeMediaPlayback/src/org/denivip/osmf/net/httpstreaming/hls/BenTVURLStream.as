@@ -55,70 +55,31 @@ package org.denivip.osmf.net.httpstreaming.hls
 		public function BenTVURLStream() {
 			super();
 		}
-//		/// Returns the number of bytes of data available for reading in the input buffer.
-//		public function get bytesAvailable () : uint;
-//		
-//		/// Indicates whether this URLStream object is currently connected.
-//		public function get connected () : Boolean;
-//		
-//		/// Indicates the byte order for the data.
-//		public function get endian () : String;
-//		public function set endian (type:String) : void;
-//		
-//		/// Controls the version of Action Message Format (AMF) used when writing or reading an object.
-//		public function get objectEncoding () : uint;
-//		public function set objectEncoding (version:uint) : void;
-//		
-//		/// Immediately closes the stream and cancels the download operation.
-//		public function close () : void;
-//		
-//		/// Begins downloading the URL specified in the request parameter.
+
+		override public function get connected ():Boolean {
+			ExternalInterface.call("console.log", "BenTVURLStream - connected called ");
+			return super.connected;
+		}
+		
+		/// Returns the number of bytes of data available for reading in the input buffer.
+		override public function get bytesAvailable ():uint {
+			return super.bytesAvailable;
+		}
+
+		/// Immediately closes the stream and cancels the download operation.
+		override public function close ():void {
+			ExternalInterface.call("console.log", "BenTVURLStream - close called ");
+			super.close();
+		}
+		
+		/// Begins downloading the URL specified in the request parameter.
 		override public function load (request:URLRequest):void {
 			ExternalInterface.call("console.log", "BenTVURLStream - Downloading " + request.url);
 			super.load(request);
-		}
-//		
-//		/// Reads a Boolean value from the stream.
-//		public function readBoolean () : Boolean;
-//		
-//		/// Reads a signed byte from the stream.
-//		public function readByte () : int;
-//		
-//		/// Reads length bytes of data from the stream.
-//		public function readBytes (bytes:ByteArray, offset:uint = 0, length:uint = 0) : void;
-//		
-//		/// Reads an IEEE 754 double-precision floating-point number from the stream.
-//		public function readDouble () : Number;
-//		
-//		/// Reads an IEEE 754 single-precision floating-point number from the stream.
-//		public function readFloat () : Number;
-//		
-//		/// Reads a signed 32-bit integer from the stream.
-//		public function readInt () : int;
-//		
-//		/// Reads a multibyte string of specified length from the byte stream using the specified character set.
-//		public function readMultiByte (length:uint, charSet:String) : String;
-//		
-//		/// Reads an object from the socket, encoded in Action Message Format (AMF).
-//		public function readObject () : *;
-//		
-//		/// Reads a signed 16-bit integer from the stream.
-//		public function readShort () : int;
-//		
-//		/// Reads an unsigned byte from the stream.
-//		public function readUnsignedByte () : uint;
-//		
-//		/// Reads an unsigned 32-bit integer from the stream.
-//		public function readUnsignedInt () : uint;
-//		
-//		/// Reads an unsigned 16-bit integer from the stream.
-//		public function readUnsignedShort () : uint;
-//		
-//		/// Reads a UTF-8 string from the stream.
-//		public function readUTF () : String;
-//		
-//		/// Reads a sequence of length UTF-8 bytes from the stream, and returns a string.
-//		public function readUTFBytes (length:uint) : String;
-//		
+		}		
+		/// Reads length bytes of data from the stream.
+		override public function readBytes (bytes:ByteArray, offset:uint = 0, length:uint = 0):void {
+			super.readBytes(bytes, offset, length);	
+		}		
 	}
 }
