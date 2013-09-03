@@ -29,11 +29,11 @@ package org.denivip.osmf.net.httpstreaming.hls
 	
 	import org.denivip.osmf.events.HTTPHLSStreamingEvent;
 	import org.denivip.osmf.logging.HLSLogger;
+	import org.denivip.osmf.net.httpstreaming.hls.HTTPBenTVDownloader;
 	import org.osmf.events.DVRStreamInfoEvent;
 	import org.osmf.events.HTTPStreamingEvent;
 	import org.osmf.events.HTTPStreamingIndexHandlerEvent;
 	import org.osmf.media.MediaResourceBase;
-	import org.osmf.net.httpstreaming.HTTPStreamDownloader;
 	import org.osmf.net.httpstreaming.HTTPStreamHandlerQoSInfo;
 	import org.osmf.net.httpstreaming.HTTPStreamRequest;
 	import org.osmf.net.httpstreaming.HTTPStreamRequestKind;
@@ -457,7 +457,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 							// then we use internal source to actually download the chunk
 							if (_downloader == null)
 							{
-								_downloader = new HTTPStreamDownloader();
+								_downloader = new HTTPBenTVDownloader();
 							}
 							
 							var downloaderMonitor:IEventDispatcher = _dispatcher;
@@ -984,7 +984,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 		
 		private var _qosInfo:HTTPStreamHandlerQoSInfo;
 		
-		private var _downloader:HTTPStreamDownloader = null;
+		private var _downloader:HTTPBenTVDownloader = null;
 		private var _request:HTTPStreamRequest = null;
 		
 		private var _indexHandler:HTTPStreamingIndexHandlerBase = null;
@@ -1010,7 +1010,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 		private var _endFragment:Boolean = false;
 		
 		private var _indexDownloaderMonitor:EventDispatcher = new EventDispatcher();
-		private var _indexDownloader:HTTPStreamDownloader = new HTTPStreamDownloader();
+		private var _indexDownloader:HTTPBenTVDownloader = new HTTPBenTVDownloader();
 		private var _currentIndexDownloadEvent:HTTPStreamingIndexHandlerEvent = null;
 		private var _pendingIndexDownloadRequests:Vector.<HTTPStreamingIndexHandlerEvent> = new Vector.<HTTPStreamingIndexHandlerEvent>();
 		private var _pendingIndexDownloadRequestsLenght:int = 0;
