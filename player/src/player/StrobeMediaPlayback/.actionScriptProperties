@@ -20,12 +20,12 @@
         </excludedEntries>
       </libraryPathEntry>
       <libraryPathEntry kind="3" linkType="1" path="assets/assets.swc" useDefaultLinkType="false"/>
-      <libraryPathEntry kind="3" linkType="1" path="/Users/flavio.barbosa/Development/sylvester/OSMF.swc" sourcepath="/OSMF" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="/Users/flavio.barbosa/Development/bentv/OSMF.swc" sourcepath="/OSMF" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="${PROJECT_FRAMEWORKS}/libs/mx/mx.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="1" linkType="1" path="${PROJECT_FRAMEWORKS}/libs"/>
     </libraryPath>
     <sourceAttachmentPath>
-      <sourceAttachmentPathEntry kind="3" linkType="1" path="/Users/flavio.barbosa/Development/sylvester/OSMF.swc" sourcepath="/OSMF" useDefaultLinkType="false"/>
+      <sourceAttachmentPathEntry kind="3" linkType="1" path="/Users/flavio.barbosa/Development/bentv/OSMF.swc" sourcepath="/OSMF" useDefaultLinkType="false"/>
     </sourceAttachmentPath>
   </compiler>
   <applications>

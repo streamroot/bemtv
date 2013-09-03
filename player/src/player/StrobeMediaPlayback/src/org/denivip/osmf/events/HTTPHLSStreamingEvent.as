@@ -26,7 +26,8 @@ package org.denivip.osmf.events
 	import org.osmf.net.httpstreaming.flv.FLVTagScriptDataMode;
 	import org.osmf.net.httpstreaming.flv.FLVTagScriptDataObject;
 	
-	import org.denivip.osmf.net.httpstreaming.hls.HTTPBenTVDownloader;
+	import org.denivip.osmf.net.httpstreaming.hls.BenTVDownloader;
+	import org.osmf.net.httpstreaming.HTTPStreamDownloader;
 
 	/**
 	 * @private
@@ -55,7 +56,7 @@ package org.denivip.osmf.events
 				url:String = null,
 				bytesDownloaded:uint = 0,
 				reason:String = HTTPStreamingEventReason.NORMAL,
-				downloader:HTTPBenTVDownloader = null
+				downloader:BenTVDownloader = null
 				)
 		{
 			super(type,
@@ -67,7 +68,7 @@ package org.denivip.osmf.events
 				url,
 				bytesDownloaded,
 				reason,
-				downloader);
+				downloader as HTTPStreamDownloader);
 		}
 	}
 }
