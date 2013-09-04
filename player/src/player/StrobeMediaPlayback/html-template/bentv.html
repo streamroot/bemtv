@@ -1,0 +1,89 @@
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+    <head>
+        <title>Strobe Media Playback</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+        <script type="text/javascript" src="lib/swfobject.js">
+        </script>
+        <script type="text/javascript" src="lib/ParsedQueryString.js">
+        </script>
+	<script type="text/javascript" src="lib/base64v1_0.js"></script>
+        <script type="text/javascript">
+            var pqs = new ParsedQueryString();
+            var parameterNames = pqs.params(false);
+            var parameters = {
+                src: "http://url_here",
+                autoPlay: "false",
+                verbose: true,
+                controlBarAutoHide: "false",
+                controlBarPosition: "bottom",
+                poster: "images/poster.png"
+            };
+
+            for (var i = 0; i < parameterNames.length; i++) {
+                var parameterName = parameterNames[i];
+                parameters[parameterName] = pqs.param(parameterName) ||
+                parameters[parameterName];
+            }
+
+       	    var wmodeValue = "direct";
+            var wmodeOptions = ["direct", "opaque", "transparent", "window"];
+            if (parameters.hasOwnProperty("wmode"))
+            {
+            	if (wmodeOptions.indexOf(parameters.wmode) >= 0)
+            	{
+            		wmodeValue = parameters.wmode;
+            	}
+            	delete parameters.wmode;
+            }
+
+            swfobject.embedSWF(
+				"StrobeMediaPlayback.swf"
+				, "BenTVplayer"
+				, 640
+				, 480
+				, "10.1.0"
+				, "expressInstall.swf"
+				, parameters
+				, {
+	                allowFullScreen: "true",
+	                wmode: wmodeValue
+	            }
+				, {
+	                name: "BenTVplayer"
+	            }
+			);
+
+	var xmlhttp = new XMLHttpRequest();
+	function loadUrl(url) {
+		console.log("Loading URL: " + url);
+		window.xmlhttp.open("GET", url, false);
+		window.xmlhttp.send();
+
+    return window.xmlhttp.response.length;
+	}
+
+	function readBytes() {
+    console.log("TAMANHO DO RESPONSE " + window.xmlhttp.response.length);
+		return B64.encode(window.xmlhttp.response);
+	}
+
+/*
+             function onMediaPlaybackError(playerId, code, message, detail)
+             {
+             	alert(playerId + "\n\n" + code + "\n" + message + "\n" + detail);
+             }
+*/
+
+        </script>
+        <style type="text/css">
+        <!-- .Verdana {
+            font-family: Verdana, Geneva, sans-serif;
+        }
+        -->
+        </style>
+    </head>
+    <body align=center>
+	<h1>BenTV Player</h1>
+	<div id="BenTVplayer">
+    </body>
+</html>
