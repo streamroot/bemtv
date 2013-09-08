@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.2 r9819"
+   sodipodi:docname="drawing.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="-822.72965"
+     inkscape:cy="770.70118"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1381"
+     inkscape:window-height="923"
+     inkscape:window-x="460"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     showguides="true"
+     inkscape:guide-bbox="true" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="font-size:178.45812988px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Birds TFB;-inkscape-font-specification:Birds TFB"
+       d="M -1159.4688 107.03125 C -1174.3652 107.0315 -1188.4462 112.44305 -1201.6875 123.25 C -1216.6812 125.48956 -1226.8916 127.52535 -1232.3438 129.375 L -1232.3438 130.84375 L -1213.9688 130.84375 C -1210.8531 130.84396 -1206.9823 131.62994 -1202.4062 133.1875 C -1194.1306 137.47166 -1187.2373 148.46781 -1181.6875 166.1875 C -1180.2272 194.8121 -1177.9282 212.96478 -1174.8125 220.65625 C -1166.4964 247.58983 -1143.611 271.03799 -1106.125 291 L -1106.125 151.96875 C -1107.347 149.04601 -1108.4813 145.85311 -1109.5312 142.375 C -1118.878 118.81362 -1134.9949 107.0315 -1157.875 107.03125 L -1159.4688 107.03125 z "
+       id="path3038" />
+    <g
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       id="text3026"
+       transform="matrix(17.454489,0,0,17.454489,4563.8822,-14886.991)" />
+    <path
+       style="font-size:439.85357666px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffcc00;fill-opacity:1;stroke:none;font-family:Birds TFB;-inkscape-font-specification:Birds TFB"
+       d="m -1181.3438,177.59375 c 1.4666,22.34447 3.5447,36.88399 6.25,43.5625 8.6314,27.95481 26.208,49.875 66.0313,70.375 0.9131,0.35509 2.0137,0.68356 2.9286,1.03125 l 0.089,-28.96875 c -27.7617,-16.39401 -54.8084,-43.13093 -75.2992,-86 z"
+       id="path3035"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="-858.57141"
+       y="6.6478963"
+       id="text3846"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3848"
+         x="-858.57141"
+         y="6.6478963" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:295.04852295px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="-1137.2787"
+       y="299.73053"
+       id="text3838"
+       sodipodi:linespacing="125%"
+       transform="scale(0.98655533,1.0136279)"><tspan
+         sodipodi:role="line"
+         x="-1137.2787"
+         y="299.73053"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Brig Maven;-inkscape-font-specification:Brig Maven Bold"
+         id="tspan3842">bentv </tspan></text>
+  </g>
+</svg>
