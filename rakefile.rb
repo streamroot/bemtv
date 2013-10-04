@@ -35,8 +35,8 @@ def configure_task t
   t.language                = 'as3'
   t.optimize                = true
   t.strict                  = true
-  t.library_path << 'lib/OSMF.swc'
-  t.library_path << 'assets'
+  t.library_path << 'player/lib/OSMF.swc'
+  t.library_path << 'player/assets'
   t.static_link_runtime_shared_libraries = true
   t.define_conditional                    << "CONFIG::LOGGING,false"
   t.define_conditional                    << "CONFIG::FLASH_10_1,true"
@@ -49,19 +49,19 @@ end
 # Debug
 
 # Compile the debug swf
-mxmlc "bin/StrobeMediaPlayback-debug.swf" => 'assets:copy' do |t|
-  t.input = "src/StrobeMediaPlayback.as"
+mxmlc "player/bin/StrobeMediaPlayback-debug.swf" => 'assets:copy' do |t|
+  t.input = "player/src/StrobeMediaPlayback.as"
   t.debug = true
   configure_task t
 end
 
 desc "Compile debug swf"
-task :compile_debug => "bin/StrobeMediaPlayback-debug.swf"
+task :compile_debug => "player/bin/StrobeMediaPlayback-debug.swf"
 
 task :debug => [:compile_debug, 'assets:rename_debug_swf']
 
 desc "Compile and run the debug swf"
-flashplayer :run => "bin/StrobeMediaPlayback-debug.swf"
+flashplayer :run => "player/bin/StrobeMediaPlayback-debug.swf"
 
 ##############################
 # DOC
@@ -69,16 +69,16 @@ flashplayer :run => "bin/StrobeMediaPlayback-debug.swf"
 desc "Generate documentation at doc/"
 asdoc 'doc' do |t|
   t.doc_sources << "src"
-  t.exclude_sources << "src/StrobeMediaPlaybackRunner.as"
+  t.exclude_sources << "player/src/StrobeMediaPlaybackRunner.as"
 end
 
-mxmlc "bin/StrobeMediaPlayback.swf" => 'assets:copy' do |t|
-  t.input = "src/StrobeMediaPlayback.as"
+mxmlc "html/static/StrobeMediaPlayback.swf" do |t|
+  t.input = "player/src/StrobeMediaPlayback.as"
   configure_task t
 end
 
 desc 'Compile the optimized deployment'
-task :compile => "bin/StrobeMediaPlayback.swf"
+task :compile => "html/static/StrobeMediaPlayback.swf"
 
 ##############################
 # DEFAULT

@@ -2,6 +2,7 @@
 bin/
 bin-debug/
 bin-release/
+html/static/StrobeMediaPlayback.swf
 
 # Other files and folders
 .settings/
