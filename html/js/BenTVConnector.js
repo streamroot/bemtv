@@ -5,7 +5,6 @@ function BenTVConnector() {
 BenTVConnector.version = "1.0";
 
 BenTVConnector.prototype = {
-
   _init: function() {
     this.xmlhttp = new XMLHttpRequest();
   },
@@ -54,7 +53,7 @@ BenTVConnector.prototype = {
   },
 
   loadUrl: function(url) {
-    console.log("Loading URL: " + url);
+    console.log("[BenTVConnector] Loading URL: " + url);
     this.xmlhttp.open("GET", url, false);
     this.xmlhttp.overrideMimeType("text/plain; charset=x-user-defined");
     this.xmlhttp.send();
@@ -64,7 +63,8 @@ BenTVConnector.prototype = {
 
   readBytes: function() {
     var len = parseInt(this.xmlhttp.getResponseHeader("Content-Length"), 10);
-    return base64ArrayBuffer(str2ab2(this.xmlhttp.response, len));
+    console.log("[BenTVConnector] Reading bytes: " + len);
+    return this.base64ArrayBuffer(this.str2ab2(this.xmlhttp.response, len));
   }
 }
 

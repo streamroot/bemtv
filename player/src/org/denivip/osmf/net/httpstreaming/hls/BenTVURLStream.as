@@ -99,29 +99,26 @@ package org.denivip.osmf.net.httpstreaming.hls
 		}
 
 		override public function load(request:URLRequest):void {
-			ExternalInterface.call("console.log", "BenTVURLStream - load called " + request.url);
-			ExternalInterface.call("bentvConnector.loadUrl", request.url);
-
-      		myBytes = Base64.decodeToByteArray(ExternalInterface.call("bentvConnector.readBytes"));
-      		myBytes.position = 0;
-
-			ExternalInterface.call("console.log", "BenTVURLStream - Downloaded " + myBytes.bytesAvailable);
-			dispatchEvent(new Event(Event.OPEN));
-			dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, myBytes.bytesAvailable, myBytes.bytesAvailable));
-			dispatchEvent(new Event(Event.COMPLETE));
+      ExternalInterface.call("console.log", "BenTVURLStream - load called " + request.url);
+      ExternalInterface.call("bentvConnector.loadUrl", request.url);
+      dispatchEvent(new Event(Event.OPEN));
+      myBytes = Base64.decodeToByteArray(ExternalInterface.call("bentvConnector.readBytes"));
+      myBytes.position = 0;
+      dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, myBytes.bytesAvailable, myBytes.bytesAvailable));
+      dispatchEvent(new Event(Event.COMPLETE));
 		}
 
-	    override public function readByte():int {
-			return myBytes.readByte();
-	    }
+    override public function readByte():int {
+      return myBytes.readByte();
+    }
 
-    	override public function readUnsignedShort():uint {
-			return myBytes.readUnsignedShort();
-    	}
+    override public function readUnsignedShort():uint {
+      return myBytes.readUnsignedShort();
+    }
 
-		override public function readBytes(bytes:ByteArray, offset:uint = 0, length:uint = 0):void {
-			myBytes.readBytes(bytes, offset, length);
-		}
+    override public function readBytes(bytes:ByteArray, offset:uint = 0, length:uint = 0):void {
+        myBytes.readBytes(bytes, offset, length);
+    }
 	}
 }
 
