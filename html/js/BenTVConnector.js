@@ -52,19 +52,22 @@ BenTVConnector.prototype = {
     return buf;
   },
 
-  loadUrl: function(url) {
-    console.log("[BenTVConnector] Loading URL: " + url);
-    this.xmlhttp.open("GET", url, false);
-    this.xmlhttp.overrideMimeType("text/plain; charset=x-user-defined");
+  requestResource: function(url) {
+    console.log("[BenTVConnector] Resource Requested: " + url);
+    this.xmlhttp.open("GET", url, true);
+    this.xmlhttp.responseType = 'arraybuffer';
+    this.xmlhttp.onload = this.readBytes;
     this.xmlhttp.send();
 
     return parseInt(this.xmlhttp.getResponseHeader("Content-Length"), 10);
   },
 
-  readBytes: function() {
-    var len = parseInt(this.xmlhttp.getResponseHeader("Content-Length"), 10);
+  readBytes: function(e) {
+    var len = parseInt(e.currentTarget.getResponseHeader("Content-Length"), 10);
     console.log("[BenTVConnector] Reading bytes: " + len);
-    return this.base64ArrayBuffer(this.str2ab2(this.xmlhttp.response, len));
+    bt = new BenTVConnector();
+    var res = bt.base64ArrayBuffer(e.currentTarget.response);
+    document['BenTVplayer'].resourceLoaded(res);
   }
 }
 

@@ -64,6 +64,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 			addEventListener(ProgressEvent.PROGRESS, onProgress);
 			addEventListener(IOErrorEvent.IO_ERROR, onError);
 			addEventListener(SecurityErrorEvent.SECURITY_ERROR, onError);
+      ExternalInterface.addCallback("resourceLoaded", resourceLoaded);
 			super();
 		}
 
@@ -100,9 +101,11 @@ package org.denivip.osmf.net.httpstreaming.hls
 
 		override public function load(request:URLRequest):void {
       ExternalInterface.call("console.log", "BenTVURLStream - load called " + request.url);
-      ExternalInterface.call("bentvConnector.loadUrl", request.url);
+      ExternalInterface.call("bentvConnector.requestResource", request.url);
       dispatchEvent(new Event(Event.OPEN));
-      myBytes = Base64.decodeToByteArray(ExternalInterface.call("bentvConnector.readBytes"));
+
+    public function resourceLoaded(resource:String):void {
+      myBytes = Base64.decodeToByteArray(resource);
       myBytes.position = 0;
       dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, myBytes.bytesAvailable, myBytes.bytesAvailable));
       dispatchEvent(new Event(Event.COMPLETE));
