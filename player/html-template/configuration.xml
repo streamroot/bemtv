@@ -1,0 +1,45 @@
+<config>
+	<src>http://mysite.com/my.flv</src>	
+	<metadata> 
+		<param name="account" value="one"/>
+		<param name="trackingServer" value="one.net"/>
+		<param name="alert" value="true" />                                
+	</metadata>
+	<metadata id="NAMESPACE_ONE"> 
+		<param name="account" value="one"/>
+		<param name="trackingServer" value="one.net"/>
+		<param name="alert" value="true" />                                
+	</metadata>
+	<metadata id="NAMESPACE_TWO"> 
+		<param name="account" value="two"/>
+		<param name="trackingServer" value="two.net"/>  
+		<param name="alert" value="true" />                              
+	</metadata>
+	<plugin>
+		<src>ConfigurationEchoPlugin1.swf</src>
+		<metadata> 
+			<param name="account" value="gfgdfg"/>
+			<param name="trackingServer" value="corp1.d1.sc.omtrdc.net"/>
+			<param name="alert" value="true" />                        
+		</metadata>
+		<metadata id="NAMESPACE_D"> 
+			<param name="account" value="gfgdfg"/>
+			<param name="trackingServer" value="corp1.d1.sc.omtrdc.net"/>
+			<param name="alert" value="true" />                        
+		</metadata>
+	</plugin>
+	
+	<plugin>
+		<src>ConfigurationEchoPlugin2.swf</src>
+		<metadata> 
+			<param name="account" value="gfgdfg"/>
+			<param name="trackingServer" value="corp1.d1.sc.omtrdc.net"/>
+			<param name="alert" value="true" />                        
+		</metadata>
+		<metadata id="NAMESPACE_D"> 
+			<param name="account" value="gfgdfg"/>
+			<param name="trackingServer" value="corp1.d1.sc.omtrdc.net"/>
+			<param name="alert" value="true" />                        
+		</metadata>
+	</plugin>
+</config>

@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Strobe Media Playback</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+	<script type="text/javascript">  		
+    		
+    	// Create a StrobeMediaPlayback configuration 
+		var parameters =
+			{	src: "http://mediapm.edgesuite.net/strobe/content/test/AFaerysTale_sylviaApostol_640_500_short.flv"   			
+   			,	autoPlay: true
+			,	controlBarAutoHide: false
+			,   javascriptCallbackFunction: "onJavaScriptBridgeCreated"
+			};
+    		
+		// Embed the player SWF:    		
+		swfobject.embedSWF
+			( "StrobeMediaPlayback.swf"
+			, "strobeMediaPlayback"
+			, 640
+			, 480
+			, "10.1.0"
+			, {}
+			, parameters
+			, { allowFullScreen: "true"}
+			, { name: "strobeMediaPlayback" }
+			);
+			
+		function onCurrentTimeChange(time, playerId)
+		{
+			document.getElementById("currentTime").innerHTML = time;		
+		}
+		
+		function onDurationChange(time, playerId)
+		{
+			document.getElementById("duration").innerHTML = time;	
+		}		
+		var player = null;
+		function onJavaScriptBridgeCreated(playerId)
+		{
+			if (player == null) {
+				player = document.getElementById(playerId);
+				
+				// Add event listeners that will update the 
+				player.addEventListener("currentTimeChange", "onCurrentTimeChange");
+				player.addEventListener("durationChange", "onDurationChange");
+				
+				// Pause/Resume the playback when we click the Play/Pause link
+				document.getElementById("play-pause").onclick = function(){
+					var state = player.getState();
+					if (state == "ready" || state == "paused") {
+						player.play2();
+					}
+					else 
+						if (state == "playing") {
+							player.pause();
+						}
+					return false;
+				};
+			}
+		}
+    </script>  	
+  </head>
+  <body>
+	<div>
+		<div>
+			<span id="currentTime" /> ... </span> : <span id="duration" /> ... </span>
+		</div>   
+		<a href="#" id="play-pause">Play/Pause</div>  
+	</div>
+	<div id="strobeMediaPlayback">
+      <p>Alternative content</p>
+    </div>
+  </body>
+</html>

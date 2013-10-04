@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+        <title>Flash/Strobe Media Playback</title>
+        <style type="text/css">
+            body {
+                font: 12px Arial, sans-serif;
+                background-color: #000000;
+                color: #FFFFFF;
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                overflow: hidden;
+            }
+        </style>
+        <link type="text/css" href="jquery.strobemediaplayback.css" rel="stylesheet" />
+        <script type="text/javascript" src="lib/jquery/jquery-1.5.1.min.js">
+        </script>
+        <script type="text/javascript" src="lib/swfobject.js">
+        </script>
+        <script type="text/javascript" src="jquery.strobemediaplayback.js">
+        </script>
+		 <script type="text/javascript" src="jquery.strobemediaplaybackchrome.js">
+        </script>
+        <script type="text/javascript">
+            $.fn.strobemediaplayback.defaults.swf = "StrobeMediaPlayback.swf";
+            //$.fn.strobemediaplayback.defaults.swf = "http://127.0.0.1:8000/smp/StrobeMediaPlayback/bin/StrobeMediaPlayback.swf";
+            
+            $.fn.adaptiveexperienceconfigurator.rules.push(
+			// Flash Player 10.0 
+            function(context, options){
+                if (context.flashPlayerVersion.major == 10 && context.flashPlayerVersion.minor == 0) {
+                    context.setOption(options, "src", "http://osmf.org/dev/videos/cathy2_HD.mp4");
+                }
+            }, 
+			
+			// Android Tablet or Phone
+            function(context, options){
+                if (context.isAndroid && (context.isTablet || context.isPhone)) {
+                    context.setOption(options, "src", "http://osmf.org/dev/videos/cathy2_SD.mp4");
+                }
+            }, 
+			
+			// is Firefox
+            function(context, options){
+                context.isFirefox = context.userAgent.match(/Firefox/i) != null;
+                if (context.isFirefox && options.useHTML5) {
+                    context.setOption(options, "src", "http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.ogg");
+                }
+                else {
+                    context.setOption(options, "src", "http://osmf.org/dev/videos/cathy2_HD.mp4");
+                }
+            }, 
+			
+			// is iOS
+            function(context, options){
+                if (context.isiPad || context.isiPhone) {
+                    context.setOption(options, "src", "http://osmf.org/dev/videos/cathy1_SD.mp4");
+                }
+            });
+            
+            var options = {
+                src: "http://osmf.org/dev/videos/cathy1_HD.mp4",
+                width: 480,
+                height: 362,
+                javascriptControls: true,				
+                autoPlay: false,
+                controlBarMode: "floating",
+                poster: "images/poster.png",
+                playButtonOverlay: true,
+                loop: true
+				//, favorFlashOverHtml5Video: false
+            };
+			
+            options.id = "strobeMediaPlaybackId";
+            
+            $(function(){
+            
+                // Get the page query string and retrieve page params
+                var pageOptions = {}, queryString = window.location.search;
+                if (queryString) {
+                    queryString = queryString.substring(1);
+                    pageOptions = $.fn.strobemediaplayback.parseQueryString(queryString);
+                }
+                
+                options = $.extend({}, options, pageOptions);
+              
+                if (!options.javascriptControls) {
+                    $(".strobeMediaPlaybackControlBar,.smp-error,.playoverlay").hide();
+                }
+				
+                // Now we are ready to generate the video tags
+                var $player = $("#strobemediaplayback-video").strobemediaplayback(options);
+				var player = $player[0];				
+				var $chrome = $player.strobemediaplaybackchrome(options);				
+			
+                $(".mysrc").bind("click", 
+					function(event){
+						event.preventDefault();					
+						player.src = this.href;
+		                player.load();
+		                player.play();	                
+					});          
+          });
+        </script>
+    </head>
+    <body>
+        <div style="padding:100px;background-color:#777777">
+            <div iv id="html5MediaPlayback" style="width:480px; height:362px;background-color:#777777;">
+                <div id="strobemediaplayback" style="width:480px; height:362px;background-color:#777777;">
+                    <div id="strobemediaplayback-video" style="width:480px; height:362px;background-color:#777777;">
+						Alternative Content
+                    </div>
+                    <a class="smp playoverlay"></a>
+                    <span class="smp-error"></span>
+                    <div class="strobeMediaPlaybackControlBar">
+                        <a class="smp play"></a>
+                        <div class="video-progress2">
+                            <a class="slider"></a>
+                            <div class="video-track">
+                                <div class="played">
+                                </div>
+                                <div class="buffered">
+                                </div>
+                            </div>
+                        </div>
+                        <!--a class="smp fullscreen" title="not implemented yet"></a-->
+                        <a class="smp volume high"></a>
+                        <div class="time">
+                            <span class="currentTime">0:00</span> / <span class="duration">0:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="seekDebug" style="color:#FFFFFF;">
+            ...
+        </div>
+        <div id="debug" style="color:#FFFFFF;">
+            ...
+        </div>
+    </body>
+    <div>       
+        <h3>MP4 files, for Chrome & Safari</h3>
+        <a class="mysrc" href="http://osmf.org/dev/videos/cathy1_SD.mp4">http://osmf.org/dev/videos/cathy1_SD.mp4</a>
+        <br/>
+        <a class="mysrc" href="http://osmf.org/dev/videos/cathy1_HD.mp4">http://osmf.org/dev/videos/cathy1_HD.mp4</a>
+        <br/>
+        <a class="mysrc" href="http://osmf.org/dev/videos/cathy2_SD.mp4">http://osmf.org/dev/videos/cathy2_SD.mp4</a>
+        <br/>
+        <a class="mysrc" href="http://osmf.org/dev/videos/cathy2_HD.mp4">http://osmf.org/dev/videos/cathy2_HD.mp4</a>
+        <br/>
+        <a class="mysrc" href="http://media.w3.org/2010/05/sintel/trailer.mp4">http://media.w3.org/2010/05/sintel/trailer.mp4</a>
+        <br/>
+        <a class="mysrc" href="http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4">http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4</a>
+        <h3>OGG files, for Firefox HTML5 only</h3>
+        <a class="mysrc" href="http://media.w3.org/2010/05/sintel/trailer.ogv">http://media.w3.org/2010/05/sintel/trailer.ogv</a>
+        <br/>
+        <a class="mysrc" href="http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.ogg">http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.ogg</a>
+    </div>
+</html>

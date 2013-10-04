@@ -1,0 +1,623 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Strobe Media Playback player setup</title>
+<style type="text/css"> 
+<!-- 
+body  {
+	font: 100% Verdana, Arial, Helvetica, sans-serif;
+	background: #666666;
+	margin: 0; /* it's good practice to zero the margin and padding of the body element to account for differing browser defaults */
+	padding: 0;
+	text-align: center; /* this centers the container in IE 5* browsers. The text is then set to the left aligned default in the #container selector */
+	color: #000000;
+}
+
+/* Tips for this Hybrid layout
+1. Since the side columns em-based sizing is based on the user's default font size, you will want to be sure that background graphics in the columns take that into account. Built correctly, this is more accessible for those that need larger font sizes, since the width of the columns remains proportionate. If this is undesirable with your design, simply change the width to a pixel size and be sure to change the margins on the #mainContent div accordingly.
+2. Since the sizing of side columns in this layout are based on the 100% font size in the body element, if you decrease the text size overall by using a font-size: 80% on the body element or the #container, remember that the column widths will downsize proportionately. You may want to increase their widths, and the size of the #mainContent div's side margins, to compensate for this.
+3. If font sizing is changed in differing amounts on each div instead of on the overall design (ie: #sidebar1 is given a 70% font size and #mainContent is given an 85% font size), this will proportionately change each of the divs overall size. You may want to adjust based on your final font sizing.
+4. The #container div is not necessary for this layout at the 100% width. You may want to use it to create faux columns or limit the width of the layout.
+5. It is not neccessary to have the 100% width on the #container div since, by nature, a div takes up 100% of the available space. It is here so that if you want to decrease the size of the overall container - perhaps leaving a bit of margin on each side - this will already be available for adjustment.
+*/
+.thrColHybHdr #container { 
+	width: 100%;
+	background: #FFFFFF;
+	/*margin: 0 auto;  the auto margins (in conjunction with a width) center the page if needed */
+	text-align: left; /* this overrides the text-align: center on the body element. */
+}  
+.thrColHybHdr #header { 
+	background: #DDDDDD; 
+	padding: 0 10px;  /* this padding matches the left alignment of the elements in the divs that appear beneath it. If an image is used in the #header instead of text, you may want to remove the padding. */
+} 
+.thrColHybHdr #header h1 {
+	margin: 0; /* zeroing the margin of the last element in the #header div will avoid margin collapse - an unexplainable space between divs. If the div has a border around it, this is not necessary as that also avoids the margin collapse */
+	padding: 10px 0; /* using padding instead of margin will allow you to keep the element away from the edges of the div */
+	text-align: center;
+}
+
+/* Tips for sidebar1:
+1. Be aware that if you set a font-size value on this div, the overall width of the div will be adjusted accordingly.
+2. Since we are working in ems, it's best not to use padding on the sidebar itself. It will be added to the width for standards compliant browsers creating an unknown actual width. 
+3. Space between the side of the div and the elements within it can be created by placing a left and right margin on those elements as seen in the ".thrColHybHdr #sidebar1 p" rule.
+*/
+.thrColHybHdr #sidebar1 {
+	float: left; 
+	background: #DDDDD /* the background color will be displayed for the length of the content in the column, but no further */
+	padding: 15px 0; /* top and bottom padding create visual space within this div */
+}
+.thrColHybHdr #sidebar2 {
+	float: right; 
+	background: #DDDDD; /* the background color will be displayed for the length of the content in the column, but no further */
+	padding: 15px 0; /* top and bottom padding create visual space within this div */
+}
+.thrColHybHdr #sidebar1 h3, .thrColHybHdr #sidebar1 p, .thrColHybHdr #sidebar2 p, .thrColHybHdr #sidebar2 h3 {
+	margin-left: 10px; /* the left and right margin should be given to every element that will be placed in the side columns */
+	margin-right: 10px;
+}
+
+/* Tips for mainContent:
+1. If you give this #mainContent div a font-size value different than the #sidebar1 div, the margins of the #mainContent div will be based on its font-size and the width of the #sidebar1 div will be based on its font-size. You may wish to adjust the values of these divs.
+2. The space between the mainContent and sidebar1 is created with the left margin on the mainContent div.  No matter how much content the sidebar1 div contains, the column space will remain. You can remove this left margin if you want the #mainContent div's text to fill the #sidebar1 space when the content in #sidebar1 ends.
+3. To avoid float drop, you may need to test to determine the approximate maximum image/element size since this layout is based on the user's font sizing combined with the values you set. However, if the user has their browser font size set lower than normal, less space will be available in the #mainContent div than you may see on testing.
+4. In the Internet Explorer Conditional Comment below, the zoom property is used to give the mainContent "hasLayout." This avoids several IE-specific bugs that may occur.
+*/
+.thrColHybHdr #mainContent {
+ 	margin: 0 12em 0 12em; /* the right margin can be given in ems or pixels. It creates the space down the right side of the page. */ 
+	padding: 0 2em 0 2em; /* padding here creates white space "inside the box." */
+} 
+.thrColHybHdr #footer { 
+	padding: 0 10px; /* this padding matches the left alignment of the elements in the divs that appear above it. */
+	background:#DDDDDD;
+} 
+.thrColHybHdr #footer p {
+	margin: 0; /* zeroing the margins of the first element in the footer will avoid the possibility of margin collapse - a space between divs */
+	padding: 10px 0; /* padding on this element will create space, just as the the margin would have, without the margin collapse issue */
+}
+
+/* Miscellaneous classes for reuse */
+.fltrt { /* this class can be used to float an element right in your page. The floated element must precede the element it should be next to on the page. */
+	float: right;
+	margin-left: 8px;
+}
+.fltlft { /* this class can be used to float an element left in your page */
+	float: left;
+	margin-right: 8px;
+}
+.clearfloat { /* this class should be placed on a div or break element and should be the final element before the close of a container that should fully contain a float */
+	clear:both;
+    height:0;
+    font-size: 1px;
+    line-height: 0px;
+}
+--> 
+
+#varsform { 
+	margin-bottom: 25px;
+}
+#varsform legend   {
+	padding: 0 5px;
+}
+#varsform fieldset {
+	margin: 5px 0 10px 0;
+	border-top: 2px solid #999;
+	padding-left: 20px;
+}
+#varsform label, #sendform label, #subsform label {
+	display: block;
+	margin-left: 5px;
+	float: left;
+	clear: left;
+	width: 24%;
+}
+#varsform input {
+	float: left;
+	clear: none;
+	width: 69%;
+}
+#varsform p { 
+	margin-top: 15px;
+}
+
+code {
+	display: block;
+	width: 460px;
+	font-family: monospace;
+	margin: 10px 0 0px 0;
+	font-size: 12px;
+	line-height: 14px;
+	overflow: auto;
+	background-color: #F5F5F5;
+	padding: 5px;
+	border: 1px solid #999;
+}
+code {
+	margin: 10px 0 20px 0;
+}
+
+
+label {
+	display: block;
+	float: right;
+	width: 35%;
+	font-size: 11px;
+	margin: 5px 5px 0 0;
+}
+label a {
+	cursor: pointer;
+}
+acronym { 
+	cursor: help;
+}
+
+
+ #varsform select
+ {
+	float: left;
+	clear: none;
+	width: 69%;
+}
+#varsform p { 
+	margin-top: 15px;
+}
+#previewLabels {
+	display: none;
+}
+
+
+</style><!--[if IE]>
+<style type="text/css"> 
+/* place css fixes for all versions of IE in this conditional comment */
+.thrColHybHdr #sidebar1, .thrColHybHdr #sidebar2 { padding-top: 30px; }
+.thrColHybHdr #mainContent { zoom: 1; padding-top: 15px; }
+/* the above proprietary zoom property gives IE the hasLayout it needs to avoid several bugs */
+</style>
+<![endif]-->
+
+ <script type="text/javascript" src="lib/jscolor/jscolor.js"></script>
+
+ <script type="text/javascript" src="lib/jquery-1.4.2.min.js"></script>          
+ <script type="text/javascript">                                         
+
+// 
+
+var flashVars = '';
+var sourceSwf = '';
+var width = '';
+var height = '';
+var extraVars= 0;
+
+
+$(window).load(function () {
+  var loc = location.href;
+  loc = loc.substring(0, loc.lastIndexOf('/'));
+  $("#source").val(loc + "/StrobeMediaPlayback.swf"); 
+  
+  
+  $("#usePlugin").change(function() {
+	
+var outputPluginForm = '';
+switch ($("#usePlugin").val()) {
+case "ConfigurationEchoPlugin": 
+		outputPluginForm = $("#pluginparams").html();	
+		outputPluginForm += '<hr /> <div id="ConfigurationEchoPlugin">';
+		outputPluginForm += '<label><acronym title="The location of plugin">plugin_ConfigurationEchoPlugin</acronym></label>';
+		outputPluginForm +=	'<input id="fv_plugin_ConfigurationEchoPlugin" name="plugin_ConfigurationEchoPlugin" value="'+ loc +'/ConfigurationEchoPlugin.swf" type="text"/>';
+		outputPluginForm += '<label><acronym title="Namespace">ConfigurationEchoPlugin_namespace</acronym></label>';
+		outputPluginForm += '<input id="fv_ConfigurationEchoPlugin_namespace" name="ConfigurationEchoPlugin_namespace" value="http://www.osmf.org/plugin/metadata/1.0" type="text"/>';
+		outputPluginForm += '<label><acronym title="First test value">ConfigurationEchoPlugin_value1</acronym></label>';
+		outputPluginForm += '<input id="fv_ConfigurationEchoPlugin_value1" name="ConfigurationEchoPlugin_value1" value="something" type="text"/>';
+		outputPluginForm += '<label><acronym title="Second test value">ConfigurationEchoPlugin_value2</acronym></label>';
+		outputPluginForm += '<input id="fv_ConfigurationEchoPlugin_value2" name="ConfigurationEchoPlugin_value2" value="something_else" type="text"/>';
+		outputPluginForm += '<label><acronym title="Alert">ConfigurationEchoPlugin_alert</acronym></label>';
+		outputPluginForm += '<input id="fv_ConfigurationEchoPlugin_alert" name="ConfigurationEchoPlugin_alert" value="" type="text"/>';
+		outputPluginForm += '</div>';
+		break;
+case "YouTubePlugin": 
+		outputPluginForm = $("#pluginparams").html();	
+		outputPluginForm += '<hr /> <div id="YouTube Plugin">';
+		outputPluginForm += '<label><acronym title="The location of plugin">plugin_YouTubePlugin</acronym></label>';
+		outputPluginForm +=	'<input id="fv_plugin_YouTubePlugin" name="plugin_YouTubePlugin" value="'+ loc +'/YouTubePlugin.swf" type="text"/>';
+		outputPluginForm += '</div>';
+		break;
+case "none":
+		outputPluginForm = '';
+		break;
+default:
+		outputPluginForm = $("#pluginparams").html();	
+}
+
+$("#pluginparams").html(outputPluginForm);	
+
+});
+
+ 
+});
+
+function toggleDisplay(itm) {
+	$("#"+itm).toggle();
+}
+
+
+function generateCode() {
+	$("#previewLabels").show();
+	getVars();
+	embedPlayer();
+		
+}
+
+function embedPlayer() {
+	var embedCode =  '<object width="' + width  + '" height="' + height +'"> ';
+	embedCode += '<param name="movie" value="'+ sourceSwf + '"></param>';
+	embedCode += '<param name="flashvars" value="'+ flashVars + '"></param>';
+	embedCode += '<param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param>';
+	embedCode += '<param name="wmode" value="'+ wmode +'"></param>'
+	embedCode += '<embed src="' + sourceSwf + '" type="application/x-shockwave-flash"';
+	embedCode += ' allowscriptaccess="always" allowfullscreen="true" ';
+	embedCode += ' wmode="' + wmode + '" ';
+	embedCode += ' width="' + width + '" height="'+ height +'" ';
+	embedCode += 'flashvars="' + flashVars + '">';
+	embedCode += '</embed></object>';
+	$("#player").html(embedCode);
+	$("#swfobjcode").text(embedCode);		
+	printFlashVars();
+}
+
+
+function getVars() {
+	flashVars = $("input[value!=],select[value!=]").filter('[id^=fv_]').serialize();
+	sourceSwf = $("#source").val();
+	width = $("#width").val();
+	height = $("#height").val();
+	wmode = $("#wmode").val();
+		
+}
+
+function goToDebug() {
+	getVars();
+	window.location = 'debug.html?wmode=' + wmode + '&width=' + width + '&height=' + height + '&' + flashVars;
+}
+
+function goToDebugMobile() {
+	getVars();
+	window.location = 'debug-mobile.html?wmode=' + wmode + '&' + flashVars;
+}
+
+function printFlashVars() {
+	var flashVarsArray = $("input[value!=],select[value!=]").filter('[id^=fv_]').serializeArray();
+	var outputVars = '';
+	outputVars += 'Source Swf: ' + sourceSwf + ' <br> ';
+	outputVars += ' width: ' + width + ' height: '+ height +' <br> ';
+	 jQuery.each(flashVarsArray, function(i, flashvar){
+        outputVars += flashvar.name + ': ' + flashvar.value + ' <br> ';
+      });
+	 
+	 $("#flashvarscode").html(outputVars);
+	
+}
+
+
+
+
+</script>  
+
+
+</head>
+
+<body class="thrColHybHdr">
+
+<div id="container">
+  <div id="header">
+    <h1>Strobe.swf Setup page</h1>
+  <!-- end #header --></div>
+  <div id="sidebar1"></div>
+  <div id="sidebar2">
+
+  <!-- end #sidebar2 --></div>
+  <div id="mainContent">
+  <table border="0" width="100%">
+  <tr><td width="65%" valign="top">
+  <h2>1. Change your flash vars </h2>
+  
+    <form id="varsform" method="get" action="StrobeMediaPlayback.html">
+      	<fieldset>
+			<legend><a href="javascript:toggleDisplay('embedparams')">Embed parameters</a></legend>
+			<div id="embedparams" >
+				<label><acronym title="The location of the swf source">source</acronym></label>
+				<input id="source" name="source" value="StrobeMediaPlayback.swf" type="text"/>
+				<label><acronym title="The overall width of the player.">width</acronym></label>
+				<input id="width" name="width" value="470" type="text"/>
+				<label><acronym title="The overall height of the player.">height</acronym></label>
+				<input  id="height" name="height" value="320" type="text"/>
+				
+				<label><acronym title="wmode">wmode</acronym></label>
+ 				<select name="wmode" id="wmode">
+ 				 	<option value="direct">direct (default)</option>
+					<option value="opaque">opaque</option>
+					<option value="transparent">transparent</option>                  
+					<option value="window">window</option>
+                </select>
+			</div>
+		</fieldset>
+        <fieldset>
+			<legend><a href="javascript:toggleDisplay('flashvars')">Flash Vars</a></legend>
+			<div id="flashvars">
+
+				<label><acronym title="The location of the mediafile.">src</acronym></label>
+				<input id="fv_src" name="src" type="text" value="http://osmf.org/configurator/videos/strobe.flv"/>
+				<label><acronym title="The XML configuration file.">configuration</acronym></label>
+				<input id="fv_configuration" name="configuration" value="" type="text"/>
+				<label><acronym title="The XML skin file.">skin</acronym></label>
+				<input id="fv_skin" name="skin" value="" type="text"/>
+				
+				<label><acronym title="The location of the poster frame">poster</acronym></label>
+				<input id="fv_poster" name="poster" type="text" value=""/>
+				
+				<label><acronym title="The location of the endOfVideoOverlay frame">endOfVideoOverlay</acronym></label>
+				<input id="fv_endOfVideoOverlay" name="endOfVideoOverlay" type="text" value=""/>
+				
+				<label><acronym title="Stream type">streamType</acronym></label>
+				<select name="streamType" id="fv_streamType">
+					<option value="">liveOrRecorded (default)</option>
+					<option value="live">live</option>
+					<option value="recorded">recorded</option>
+					<option value="dvr">dvr</option>
+				</select>
+				<label><acronym title="Loop:">loop</acronym></label>
+                <select name="loop" id="fv_loop">
+					<option value="">false (default)</option>
+					<option value="true">true</option>
+                </select>
+				
+				<label><acronym title="autoRewind:">autoRewind</acronym></label>
+                <select name="autoRewind" id="fv_autoRewind">
+					<option value="">false (default)</option>
+					<option value="true">true</option>
+                </select>
+				
+                <label><acronym title="autoPlay:">autoPlay</acronym></label>
+                <select name="autoPlay" id="fv_autoPlay">
+					<option value="">false (default)</option>
+					<option value="true">true</option>
+                </select>
+				
+				<label><acronym title="playButtonOverlay:">playButtonOverlay</acronym></label>
+                <select name="playButtonOverlay" id="fv_playButtonOverlay">
+					<option value="">true (default)</option>
+					<option value="false">false</option>
+                </select>
+				
+				<label><acronym title="Scale Mode">scaleMode</acronym></label>
+ 				<select name="scaleMode" id="fv_scaleMode">
+ 				 	<option value="">letterbox (default)</option>
+					<option value="none">none</option>
+					<option value="stretch">stretch</option>                  
+					<option value="zoom">zoom</option>
+                </select>		
+                
+                <label><acronym title="enableStageVideo:">enableStageVideo</acronym></label>
+                <select name="enableStageVideo" id="fv_enableStageVideo">
+					<option value="">true (default)</option>
+					<option value="false">false</option>
+                </select>
+                		
+                <label><acronym title="Control Bar Mode">controlBarMode</acronym></label>
+				<select name="controlBarMode" id="fv_controlBarMode">
+					<option value="">docked (default)</option>
+                    <option value="floating">floating</option>
+					<option value="none">none</option>
+                </select>						
+                
+               <label><acronym title="Auto Hide Control Bar">controlBarAutoHide</acronym></label>
+				<select name="controlBarAutoHide" id="fv_controlBarAutoHide">
+					<option value="">true (default)</option>
+					<option value="false">false</option>
+                </select>
+                
+				<label><acronym title="controlBarAutoHideTimeout [s] default 3">controlBarAutoHideTimeout</acronym></label>
+				<input id="fv_controlBarAutoHideTimeout" name="controlBarAutoHideTimeout" value="" type="text"/>
+				
+				<label><acronym title="volume default 1">volume</acronym></label>
+				<input id="fv_volume" name="volume" value="" type="text"/>
+				
+				<label><acronym title="audioPan default 0">audioPan</acronym></label>
+				<input id="fv_audioPan" name="audioPan" value="" type="text"/>
+				
+               <label><acronym title="muted">muted</acronym></label>
+				<select name="muted" id="fv_muted">
+					<option value="">false (default)</option>
+					<option value="false">true</option>
+                </select>
+                
+                
+                <label><acronym title="clipStartTime default NaN">clipStartTime</acronym></label>
+				<input id="fv_clipStartTime" name="clipStartTime" value="" type="text"/>
+                
+                <label><acronym title="clipEndTime default NaN">clipEndTime</acronym></label>
+				<input id="fv_clipEndTime" name="clipEndTime" value="" type="text"/>
+                
+                <label><acronym title="Background Color">backgroundColor</acronym></label>
+                <input id="fv_backgroundColor" name="backgroundColor" type="text" class="color {required:false}"/>
+			
+              
+          </div>
+		</fieldset>
+                <fieldset>
+			<legend><a href="javascript:toggleDisplay('pluginVars')">Plugins</a></legend>
+<div id="pluginVars">
+        <label><acronym title="Plugins">plugin</acronym></label>
+				<select name="usePlugin" id="usePlugin">
+					<option value="none">none</option>
+					<option value="ConfigurationEchoPlugin">ConfigurationEchoPlugin</option>
+					<option value="YouTubePlugin">YouTubePlugin</option>
+                </select>
+			<div id="pluginparams" >
+				
+			</div>
+                 </div>
+		</fieldset>
+		
+		
+		        <fieldset>
+			<legend><a href="javascript:toggleDisplay('advancedparams')">Advanced Parameters</a></legend>
+<div id="advancedparams">
+
+
+ 		<label><acronym title="bufferingOverlay">bufferingOverlay</acronym></label>
+				<select name="bufferingOverlay" id="fv_bufferingOverlay">
+					<option value="">true (default)</option>
+					<option value="false">false</option>
+                		</select>
+
+		     <label><acronym title="Verbose mode">verbose</acronym></label>
+				<select name="verbose" id="fv_verbose">
+					<option value="">false (default)</option>
+					<option value="true">true</option>
+                </select>
+				
+				
+			<label><acronym title="showVideoInfoOverlayOnStartUp">showVideoInfoOverlayOnStartUp</acronym></label>
+				<select name="verbose" id="fv_showVideoInfoOverlayOnStartUp">
+					<option value="">false (default)</option>
+					<option value="true">true</option>
+                </select>
+				
+				<label><acronym title="autoDynamicStreamSwitch">autoDynamicStreamSwitch</acronym></label>
+				<select name="autoDynamicStreamSwitch" id="fv_autoDynamicStreamSwitch">
+					<option value="">true (default)</option>
+					<option value="false">false</option>
+                </select>
+	
+		        <label><acronym title="Optimize Initial Index">optimizeInitialIndex</acronym></label>
+				<select name="optimizeInitialIndex" id="fv_optimizeInitialIndex">
+					<option value="">true (default)</option>
+					<option value="false">false</option>
+                </select>
+				
+				<label><acronym title="maxAllowedDynamicStreamIndex default Flash">maxAllowedDynamicStreamIndex</acronym></label>
+				<input id="fv_maxAllowedDynamicStreamIndex" name="maxAllowedDynamicStreamIndex" value="" type="text"/>
+	
+	            <label><acronym title="Optimize Buffering">optimizeBuffering</acronym></label>
+				<select name="optimizeBuffering" id="fv_optimizeBuffering">
+					<option value="">true (default)</option>
+					<option value="false">false</option>
+                </select>
+
+				<label><acronym title="bufferTime default from Flash">bufferTime</acronym></label>
+				<input id="fv_bufferTime" name="bufferTime" value="" type="text"/>
+				
+				<label><acronym title="initialBufferTime default 0.1">initialBufferTime</acronym></label>
+				<input id="fv_initialBufferTime" name="initialBufferTime" value="" type="text"/>
+				
+				<label><acronym title="expandedBufferTime default 10">expandedBufferTime</acronym></label>
+				<input id="fv_expandedBufferTime" name="expandedBufferTime" value="" type="text"/>
+				
+				<label><acronym title="dynamicStreamBufferTime default 4">dynamicStreamBufferTime</acronym></label>
+				<input id="fv_dynamicStreamBufferTime" name="dynamicStreamBufferTime" value="" type="text"/>
+				
+				<label><acronym title="dvrSnapToLiveClockOffset default 4">dvrSnapToLiveClockOffset</acronym></label>
+				<input id="fv_dvrSnapToLiveClockOffset" name="dvrSnapToLiveClockOffset" value="" type="text"/>
+				
+				<label><acronym title="dvrBufferTime default 2">dvrBufferTime</acronym></label>
+				<input id="fv_dvrBufferTime" name="dvrBufferTime" value="" type="text"/>
+				
+				<label><acronym title="dvrDynamicStreamingBufferTime default 4">dvrDynamicStreamingBufferTime</acronym></label>
+				<input id="fv_dvrDynamicStreamingBufferTime" name="dvrDynamicStreamingBufferTime" value="" type="text"/>
+
+				<label><acronym title="liveBufferTime default 2">liveBufferTime</acronym></label>
+				<input id="fv_liveBufferTime" name="liveBufferTime" value="" type="text"/>
+				
+				<label><acronym title="liveDynamicStreamingBufferTime default 4">liveDynamicStreamingBufferTime</acronym></label>
+				<input id="fv_liveDynamicStreamingBufferTime" name="liveDynamicStreamingBufferTime" value="" type="text"/>
+
+				<label><acronym title="minContinuousPlaybackTime default 30">minContinuousPlaybackTime</acronym></label>
+				<input id="fv_minContinuousPlaybackTime" name="minContinuousPlaybackTime" value="" type="text"/>
+
+				<label><acronym title="highQualityThreshold default 480">highQualityThreshold</acronym></label>
+				<input id="fv_highQualityThreshold" name="highQualityThreshold" value="" type="text"/>
+		     
+		        <label><acronym title="urlIncludesFMSApplicationInstance">urlIncludesFMSApplicationInstance</acronym></label>
+				<select name="urlIncludesFMSApplicationInstance" id="fv_urlIncludesFMSApplicationInstance">
+					<option value="">false (default)</option>
+					<option value="true">true</option>
+                </select>
+				
+				<label><acronym title="bytesLoadedUpdateInterval default 250 ms">bytesLoadedUpdateInterval</acronym></label>
+				<input id="fv_bytesLoadedUpdateInterval" name="bytesLoadedUpdateInterval" value="" type="text"/>
+				
+				<label><acronym title="currentTimeUpdateInterval default 250 ms">currentTimeUpdateInterval</acronym></label>
+				<input id="fv_currentTimeUpdateInterval" name="currentTimeUpdateInterval" value="" type="text"/>
+              
+              
+              
+				<label><acronym title="rtmpNetConnectionFactoryTimeout default 10 seconds">rtmpNetConnectionFactoryTimeout</acronym></label>
+				<input id="fv_rtmpNetConnectionFactoryTimeout" name="rtmpNetConnectionFactoryTimeout" value="" type="text"/>
+             
+             
+				<label><acronym title="multicastNetConnectionFactoryTimeout default 100 seconds">multicastNetConnectionFactoryTimeout</acronym></label>
+				<input id="fv_multicastNetConnectionFactoryTimeout" name="multicastNetConnectionFactoryTimeout" value="" type="text"/>
+             
+             
+              	<label><acronym title="haltOnError">haltOnError</acronym></label>
+				<select name="haltOnError" id="fv_haltOnError">
+					<option value="">false (default)</option>
+					<option value="true">true</option>
+                </select>
+              
+          </div>
+		</fieldset>
+		
+		<fieldset>
+			<legend><a href="javascript:toggleDisplay('multicast')">Multicast Parameters</a></legend>
+			<div id="multicast">
+				
+				<label><acronym title="streamName">streamName</acronym></label>
+				<input id="fv_streamName" name="streamName" value="" type="text"/>
+				
+				<label><acronym title="groupspec">groupspec</acronym></label>
+				<input id="fv_groupspec" name="groupspec" value="" type="text"/>
+				
+			</div>
+
+		</fieldset>
+		
+      <input name="bPreview" type="button" value="Preview and Update" onclick="generateCode()"/>
+      <br />
+      <input name="bContructDebugUrl" type="button" value="Costruct DEBUG URL" onclick="goToDebug()"/>
+      <br />
+      <input name="bContructDebugUrlMobile" type="button" value="Costruct DEBUG URL (mobile)" onclick="goToDebugMobile()"/>
+	  <br/><br/>
+    </form>
+	</td>
+	<td>
+	<div id="previewLabels">
+		<table>
+			<tr>
+				<td>
+					<h2>2. Preview Player</h2>
+					<div id="player"></div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<h2>3. Preview Code</h2>
+					<code id="swfobjcode"></code>
+					<h4> Embed variables </h4>
+					<code id="flashvarscode"></code>
+				</td>
+			</tr>
+			
+		</table>
+	</div>
+	</td>
+	</tr>
+</table>
+
+<!-- end #mainContent --></div>
+	<!-- This clearing element should immediately follow the #mainContent div in order to force the #container div to contain all child floats --><br class="clearfloat" />
+   <div id="footer">
+  <!-- end #footer --></div>
+<!-- end #container --></div>
+</body>
+</html>

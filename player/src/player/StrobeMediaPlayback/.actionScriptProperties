@@ -29,9 +29,7 @@
       <sourceAttachmentPathEntry kind="3" linkType="1" path="lib/OSMF.swc" sourcepath="/OSMF" useDefaultLinkType="false"/>
     </sourceAttachmentPath>
   </compiler>
-  <applications>
-    <application path="StrobeMediaPlayback.as"/>
-  </applications>
+  <applications/>
   <modules/>
   <buildCSSFiles/>
   <flashCatalyst validateFlashCatalystCompatibility="false"/>

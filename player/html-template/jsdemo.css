@@ -1,0 +1,67 @@
+.smp-controls
+{
+	width: 640px;
+	font-size: 0.9em;			
+}
+.smp-top-container
+{	
+	width: 630px;
+	padding: 5px;
+}
+
+.smp-volume
+{
+	width: 10%;
+	height: 9px;
+	
+	padding-left: 30px;
+	display: inline-block;
+}
+
+.smp-time
+{
+	float: right;
+}
+
+.smp-mbr-indicator
+{
+	float: right; 
+	margin-right: 10px;
+}
+
+.smp-mbr-items
+{
+	position:absolute;
+	top: 370px;
+	left: 310px;
+	width: 250px;
+	z-index:200;
+	background-color: black;
+	display: inline;
+}
+
+.smp-mbr-item
+{
+	display:block;
+	margin:0;
+	padding:0;
+}
+
+.smp-mbr-auto
+{
+;
+}
+
+.smp-progress
+{			    
+	width: 630px;
+	padding: 0 5px;
+	font-size: 8px;
+}
+
+.smp-mbr-items button
+{
+	width: 100%;
+	text-align: right;
+}
+		

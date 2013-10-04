@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+        <title>Flash/Strobe Media Playback</title>
+        <style type="text/css">
+            body {
+                font: 12px Arial, sans-serif;
+                background-color: #000000;
+                color: #FFFFFF;
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                overflow: hidden;
+            }
+        </style>
+	    <script type="text/javascript" src="lib/swfobject.js">
+        </script>
+        <script type="text/javascript" src="lib/jquery/jquery-1.5.1.min.js">
+        </script>
+        <script type="text/javascript" src="jquery.strobemediaplayback.js">
+        </script>
+		
+	
+		<script type="text/javascript">
+            $(function(){
+                var options={
+					src: "http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4",
+					width: 480,
+					height: 362,				
+					poster: "images/poster.png"
+				};			
+               
+				// Now we are ready to generate the video tags
+                $("#strobemediaplayback").strobemediaplayback(options);
+            });
+        </script>
+    </head>
+    <body>
+        <div id="strobemediaplayback" >Alternative content</div>   
+    </body>
+</html>

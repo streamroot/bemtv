@@ -1,0 +1,144 @@
+.html5player{
+	position: relative;
+	background:#000;
+}
+
+.html5player .controls{
+	display:none;
+	position:absolute;
+	width: 100%;
+	height: 50px;
+	bottom:0;
+	background: url(../html5-images/SMP_Tablet_InCon_Background.PNG) left top repeat-x;
+}
+
+.html5player .icon{
+	width: 90px;
+	height: 50px;
+	float: left;
+	text-indent: -9999px;
+	cursor:pointer;
+}
+
+.html5player .progress{
+	height:50px;
+	position:absolute;
+	left:95px;
+	right:95px;
+}
+
+.html5player .tracks{
+	height: 100%;
+	left:27px;
+	right:27px;
+	position: absolute;
+	background: url(../html5-images/SMP_Tablet_InCon_ScrubBack.png) 0 center repeat-x;
+}
+
+.html5player .tracks .seeking{
+	display:none;
+	position: absolute;
+	width:0;
+	height: 100%;
+	z-index:3;
+	background: url(../html5-images/SMP_Tablet_InCon_ScrubSrch.png) 0 center repeat-x;
+}
+
+.html5player .tracks .played{
+	position: absolute;
+	width:0;
+	height: 100%;
+	z-index:2;
+	background: url(../html5-images/SMP_Tablet_InCon_ScrubPlyd.png) 0 center repeat-x;
+}
+
+.html5player .tracks .buffered{
+	position: absolute;
+	width: 0;
+	height: 100%;
+	z-index:1;
+	cursor:pointer;
+	background: url(../html5-images/SMP_Tablet_InCon_ScrubLoad.png) 0 center repeat-x;
+}
+
+.html5player .slider{
+	width: 58px;
+	height: 100%;
+	top:1px;
+	z-index:10;
+	display:block;
+	position:absolute;
+	cursor:pointer;
+	background: url(../html5-images/SMP_Tablet_InCon_ScrubTab_N.png) left top no-repeat;
+}
+.html5player .slider.hover{
+	background: url(../html5-images/SMP_Tablet_InCon_ScrubTab_O.png);
+}
+
+.html5player .playtoggle{
+	position:absolute;
+	background: url(../html5-images/SMP_Tablet_InCon_PLAY_Norm.png) left top no-repeat;
+}
+.html5player .playtoggle.hover{
+	background: url(../html5-images/SMP_Tablet_InCon_PLAY_Over.png);
+}
+
+.html5player .paused{
+	background: url(../html5-images/SMP_Tablet_InCon_PAUSE_Norm.png) left top no-repeat;
+}
+.playtoggle.paused.hover{
+	background: url(../html5-images/SMP_Tablet_InCon_PAUSE_Over.png);
+}
+
+.html5player .fullview{
+	position:absolute;
+	right: 0;
+	background: url(../html5-images/SMP_Tablet_InCon_FULLS_Norm.png) left top no-repeat;
+}
+.html5player .fullview.hover{
+	background: url(../html5-images/SMP_Tablet_InCon_FULLS_Over.png);
+}
+
+.html5player .fullview.disabled{
+	background: url(../html5-images/SMP_Tablet_InCon_FULLS_Disabled.png);
+}
+
+.html5player .timestamp{
+	font-size:14px;
+	color:#fff;
+	padding-top:16px;
+}
+
+.html5player .timestamp.current{
+	position:absolute;
+	left:75px;
+}
+
+.html5player .timestamp.duration{
+	position:absolute;
+	right:75px;
+}
+
+.html5player .errorwindow{
+	display:none;
+	position: absolute;
+	color: white;
+	width: 100%;
+	text-align: center;
+	background: url(../html5-images/SMP_Tablet_InCon_Background.PNG) left top repeat-x;
+	padding: 10px 0;
+	font-weight: bold;
+}
+
+.html5player.fullscreen{
+	position:absolute;
+	left:0; right:0; top:0; bottom:0;
+	width:100%; height:100%;
+	overflow:hidden;
+}
+
+.html5player.fullscreen video{
+	width:100%; height:100%;
+}
+
+/*FULL VIEW*/

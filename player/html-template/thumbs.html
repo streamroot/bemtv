@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>Device Detection Test</title>
+		<style type="text/css">
+			body {
+				font-family: sans-serif;
+			}
+			.movie {
+				width: 100%;
+				clear: both;
+			}
+			.movie div.thumb {
+				float: left;
+				margin-right: 10px;
+				cursor: pointer;
+				border: solid 1px blue;
+			}
+			.movie div.details {
+				width: 100%;
+				height: 100%;
+			}
+			.movie div.details p.title {
+				font-weight: bold;
+				cursor: pointer;
+			}
+			.movie div.details p.desc {
+				font-weight: normal;
+			}
+		</style>
+		<link type="text/css" rel="stylesheet" href="lib/jquery.strobemediaplaybackhtml5.css"/>
+		
+		<script type="text/javascript" src="lib/swfobject.js"></script>
+		<script type="text/javascript" src="lib/profiles.js"></script>
+		<script type="text/javascript" src="lib/devicedetection.js"></script>
+		<script type="text/javascript" src="lib/jquery/jquery-1.5.1.min.js"></script>
+		<script type="text/javascript" src="lib/jquery-ui-1.8.14.custom.min.js"></script>
+		<script type="text/javascript" src="lib/jquery.strobemediaplaybackhtml5.js"></script>
+		<script type="text/javascript" src="lib/StrobeMediaPlayer.js"></script>
+		<script>
+			var movies = [
+				{
+					"flashvars":{"poster":"images/poster1.png", "src":"http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4"}, 
+					"element":"clipContainer0"
+				},
+				{
+					"flashvars":{"poster":"images/poster2.jpg", "src":"http://osmf.org/dev/videos/cathy1_HD.mp4"}, 
+					"element":"clipContainer1"
+				}
+			];
+			
+			$(function() {
+				for (i = 0; i < movies.length; i++) {
+					strobeMediaPlayback.flashvars(movies[i]["flashvars"]);
+					strobeMediaPlayback.draw(movies[i]["element"]);
+				}
+			});
+			
+		</script>
+	</head>
+	<body>
+		<div>
+		<p>This is a demo page demonstrating the Strobe Media Playback 1.6 features. The page is displayed differently on 
+		each of the following device types: Desktop, Tablet, Smartphone. Each device type is defined to have its own 
+		appropriate skin and interactions. Additionally, the page renders HTML5 code for devices that are not Flash-enabled.</p>
+		<p>On Flash-enabled smartphones, the player display thumbnails that, when pressed, start playback in full screen. On 
+		Flash-enabled tablets, the page displays wider, inline videos waiting in a paused state. On desktops, the behavior 
+		of the player is as it has been for SMP 1.5 and 1.0.</p>
+		</div>
+		<div id="movie0" class="movie">
+			<div class="thumb">
+				<div id="clipContainer0"></div>
+			</div>
+			<div class="details"><p class="title">Video One</p><p class="desc">Video one description.</p></div>
+		</div>
+		<div id="movie1" class="movie">
+			<div class="thumb">
+				<div id="clipContainer1"></div>
+			</div>
+			<div class="details"><p class="title">Video Two</p><p class="desc">The description of the second video.</p></div>
+		</div>
+	</body></html>
+		

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skin>
+	<elements basePath="tablet-images/incontext/">
+	  <!-- Background elements for the control bar --> 
+	  <element id="controlBarBackdrop" src="SMP_Tablet_InCon_Background.png"/> <!-- 2 x 35 -->
+	  <element id="controlBarBackdropLeft" src="SMP_Tablet_InCon_Background.png"/> <!-- 2 x 35 -->
+	  <element id="controlBarBackdropRight" src="SMP_Tablet_InCon_Background.png"/> <!-- 2 x 35 -->
+	  
+	  <!-- Scrub Bar elements -->
+	  <element id="scrubBarTrack" src="SMP_Tablet_InCon_ScrubBack.png"/>
+	  <element id="scrubBarTrackLeft" src="SMP_Tablet_InCon_ScrubMargi.png"/>
+	  <element id="scrubBarTrackRight" src="SMP_Tablet_InCon_ScrubMargi.png"/>
+	  <element id="scrubBarLoadedTrack" src="SMP_Tablet_InCon_ScrubLoad.png"/>
+	  <element id="scrubBarPlayedTrack" src="SMP_Tablet_InCon_ScrubPlyd.png"/>
+	  <element id="scrubBarPlayedTrackSeeking" src="SMP_Tablet_InCon_ScrubSrch.png"/>
+
+	  <element id="scrubBarScrubberNormal" src="SMP_Tablet_InCon_ScrubTab_N.png"/>
+	  <element id="scrubBarScrubberDown" src="SMP_Tablet_InCon_ScrubTab_O.png"/>
+	  <element id="scrubBarScrubberOver" src="SMP_Tablet_InCon_ScrubTab_O.png"/>
+	  
+	  <!-- Play Button elements -->
+	  <element id="playButtonNormal" src="SMP_Tablet_InCon_PLAY_Norm.png"/> <!-- 24 x 24 -->
+	  <element id="playButtonOver" src="SMP_Tablet_InCon_PLAY_Over.png"/> <!-- 24 x 24 -->
+	  <element id="playButtonDown" src="SMP_Tablet_InCon_PLAY_Over.png"/> <!-- 24 x 24 -->
+      
+	  <!-- Pause Button states -->
+	  <element id="pauseButtonNormal" src="SMP_Tablet_InCon_PAUSE_Norm.png"/> <!-- 24 x 24 -->
+	  <element id="pauseButtonDown" src="SMP_Tablet_InCon_PAUSE_Over.png"/> <!-- 24 x 24 -->
+	  <element id="pauseButtonOver" src="SMP_Tablet_InCon_PAUSE_Over.png"/> <!-- 24 x 24 -->
+	  
+	  <!-- Fullscreen Enter -->   
+	  <element id="fullScreenEnterButtonNormal" src="SMP_Tablet_InCon_FULLS_Norm.png"/> <!-- 20 x 24 -->
+	  <element id="fullScreenEnterButtonOver" src="SMP_Tablet_InCon_FULLS_Over.png"/> <!-- 20 x 24 -->
+	  <element id="fullScreenEnterButtonDown" src="SMP_Tablet_InCon_FULLS_Over.png"/> <!-- 20 x 24 -->
+	
+	  <!-- Fullscreen Leave -->
+	  <element id="fullScreenLeaveButtonNormal" src="SMP_Tablet_InCon_FULLS_Back_Norm.png"/> <!-- 20 x 24 -->
+	  <element id="fullScreenLeaveButtonOver" src="SMP_Tablet_InCon_FULLS_Back_Over.png"/> <!-- 20 x 24 -->
+	  <element id="fullScreenLeaveButtonDown" src="SMP_Tablet_InCon_FULLS_Back_Over.png"/> <!-- 20 x 24 -->
+	  
+	  <!-- Button -->
+	  <element id="buttonHighlight" src="SMP_Tablet_InCon_BtOverGlow.png"/>
+	</elements>
+</skin>

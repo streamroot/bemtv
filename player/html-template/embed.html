@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+        <title>Flash/Strobe Media Playback</title>
+        <style type="text/css">
+            body {
+                font: 12px Arial, sans-serif;
+                background-color: #000000;
+                color: #FFFFFF;
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                overflow: hidden;
+            }
+        </style>
+		
+		
+		<link type="text/css" href="jquery.strobemediaplayback.css" rel="stylesheet" />
+        <script type="text/javascript" src="lib/swfobject.js">
+        </script>
+		<script type="text/javascript" src="lib/jquery/jquery-1.4.2.js">
+        </script>
+        <script type="text/javascript" src="jquery.strobemediaplayback.js">
+        </script>
+		
+	
+		<script type="text/javascript">
+            $(function(){
+                // Get the page query string and retrieve page params
+                var options={}, queryString = window.location.search;
+              
+                if (queryString) {
+                    queryString = queryString.substring(1);				
+					options = $.fn.strobemediaplayback.parseQueryString(queryString);
+                }
+                
+				// Use a sample video for geeks that look at the source code for samples
+				if (!options.src)
+				{
+					options.src = "http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4";
+				}
+				
+                options = $.fn.adaptiveexperienceconfigurator.adapt(options);
+                
+				// Retrieve the window dimensions
+                options.width = $(window).width();
+                options.height = $(window).height();
+                
+				// Now we are ready to generate the video tags
+                $("#strobemediaplayback").strobemediaplayback(options);
+            });
+        </script>
+    </head>
+    <body>
+        <div id="strobemediaplayback" >Alternative content</div> 
+    </body>
+</html>

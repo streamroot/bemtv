@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+        <title>Advertisement Demo</title>
+        <style type="text/css">
+            body {
+                font: 12px Arial, sans-serif;
+                background-color: #BBBBBB;
+                color: #000000;
+                height: 100%;
+                width: 100%;
+                margin: 20px;
+            }
+            
+            .ad-controls {
+                padding: 20px;
+                margin: 20px;
+            }
+            
+        </style>
+        <script type="text/javascript" src="lib/jquery/jquery-1.5.1.min.js">
+        </script>
+        <script type="text/javascript" src="jquery.strobemediaplayback.js">
+        </script>
+        <script type="text/javascript" src="lib/swfobject.js">
+        </script>
+        <script type="text/javascript">
+            var defaultOptions = {
+                src: "http://players.edgesuite.net/videos/big_buck_bunny/bbb_448x252.mp4",
+                
+                width: 640,
+                height: 462,
+                enableStageVideo: true,
+                controlBarAutoHide: false,
+                playButtonOverlay: true,
+                showVideoInfoOverlayOnStartUp: true,
+                plugin_ads: "AdvertisementPlugin.swf"
+            };
+            
+            var options = defaultOptions;
+            
+            var scenarios = {
+                all: {
+					src: "http://zeridemo-f.akamaihd.net/content/robinhood/robin_hood_25fps_3000-2.f4m",
+                    ads_preroll: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+                    ads_postroll: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+                    ads_midroll: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+                    ads_midrollTime: 20,
+                    ads_overlay: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+                    ads_overlayTime: 25,
+                    autoPlay: true
+                },
+                
+                ST397: {
+                    src: "http://mediapm.edgesuite.net/osmf/content/test/manifest-files/dynamic_Streaming.f4m",
+                    ads_preroll: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+                    ads_postroll: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+                    ads_midroll: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+                    ads_midrollTime: 15,
+                    ads_overlay: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+                    ads_overlayTime: 20,
+                    seekWorkarround: false,
+                    autoPlay: true
+                },
+                
+                ST398: {
+                    src: "http://zeridemo-f.akamaihd.net/content/amours/Amours_Imaginaires_3128.f4m",
+                    ads_preroll: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+                    autoPlay: true
+                },
+                
+                ST399: {
+					src:"http://zeridemo-f.akamaihd.net/content/inoutedit-mbr/inoutedit_h264_3000.f4m",
+                    removeContentFromStageOnFullScreenWithStageVideo: true,
+                    autoPlay: true
+                },
+                
+                ST400: {
+                    src: "http://mediapm.edgesuite.net/osmf/content/test/manifest-files/dynamic_Streaming.f4m",
+                    ads_midroll: "rtmp://cp67126.edgefcs.net/ondemand/mp4:mediapm/osmf/content/test/sample1_700kbps.f4v",
+                    ads_midrollTime: 15,
+                    ads_overlay: "rtmp://cp67126.edgefcs.net/ondemand/mp4:mediapm/osmf/content/test/sample1_700kbps.f4v",
+                    ads_overlayTime: 25,
+                    autoPlay: true
+                },
+                
+                HDS_PiP: {
+                    src: "http://zeridemo-f.akamaihd.net/content/matthewsweet-mbr/MatthewSweet_h264_3000.f4m",
+                    ads_overlay: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+                    ads_overlayTime: 10
+                }
+            
+            }
+            
+            // TODO: Auto-generate the id inside the jQuery plugin
+            options.id = "strobeMediaPlaybackId";
+            
+            var $player;
+            var player;
+            
+            $(function(){
+                // Get the page query string and retrieve page params
+                var pageOptions = {}, queryString = window.location.search;
+                if (queryString) {
+                    queryString = queryString.substring(1);
+                    pageOptions = $.fn.strobemediaplayback.parseQueryString(queryString);
+                }
+                
+                options = $.extend({}, options, pageOptions);
+                
+                embedStrobeMediaPlayback(options);
+                
+                $("#playNonLiniar").bind("click", function(event){
+                    event.preventDefault();
+                    
+                    player.strobeMediaPlayback.displayNonLiniarAd("http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv", {
+                        right: options.width / 2 * Math.random(),
+                        bottom: options.height / 2 * Math.random(),
+                        scaleMode: "none"
+                    });
+                });
+                
+                
+                $("#playLiniar").bind("click", function(event){
+                    event.preventDefault();
+                    player.strobeMediaPlayback.displayLiniarAd("http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv");
+                });
+                
+                $(".scenario").bind("click", function(event){
+                    event.preventDefault();
+                    playScenario(this.id);
+                });
+                
+                $("#enableStageVideo").attr("checked", options.enableStageVideo);
+                $("#enableStageVideo").bind("click", function(event){
+                    defaultOptions.enableStageVideo = $(this).is(':checked');
+                });
+            });
+            
+            function playScenario(scenario){
+                $("#media-container").empty();
+                var scenarioOptions = scenarios[scenario];
+                options = defaultOptions;
+                scenarioOptions = $.extend({}, options, scenarioOptions);
+                var qs = $.fn.strobemediaplayback.generateQueryString(scenarioOptions);
+                window.location = "?" + qs;
+            }
+            
+            function embedStrobeMediaPlayback(options){
+                var $strobemediaplayback = $("#strobemediaplayback");
+                $player = $strobemediaplayback.strobemediaplayback(options);
+                player = $player[0];
+            }
+        </script>
+    </head>
+    <body>
+        <h2>OSMF Reference Plug-in Demo for Advertisements</h2>
+		<p>
+			This reference plug-in makes it easy to add simple advertisement experiences to an OSMF-based video player.
+		</p>
+		<p>	
+			It provides sample code for both linear and non-linear ad insertions, and it can serve as a starting point for plug-ins that are required to integrate with advertisement backends.
+		</p>
+        <div id="media-container">
+            <div id="strobemediaplayback">
+                Alternative content
+            </div>
+        </div>
+        <div class="ad-controls">
+            <h3>Interactive Ad Controls</h3>
+            <a href="#" id="playNonLiniar">Display a non-liniar advertisement (overlay ad)</a>
+            <br/>
+            <a href="#" id="playLiniar">Play a linear advertisement (mid-roll ad)</a>
+            <br/>
+        </div>
+        <div class="scenarios">
+            <h3>Sample Composition Scenarios</h3>
+            <input type="checkbox" id="enableStageVideo" name="enableStageVideo" checked="true">Enable Stage Video (the changed value will be used only after selecting a new scenario)</a>
+            <br/>
+            <a id="all" href="#" class="scenario">Pre-roll, mid-roll, overlay, post-roll</a>
+            <br/>
+			
+            <a id="ST397" href="#" class="scenario">ST-397 - GPU Decoding issue on stagevideo: Win7, Flash Player version WIN 10,2,152,26 (debug)</a>
+            <br/>
+            <a id="ST398" href="#" class="scenario">FIXED! - ST-398 - Crash when playing HDS content in an advertisement scenario (pre roll)</a>
+            <br/>
+            <a id="ST399" href="#" class="scenario">ST-399 - StageVideo Crash when removing the video content from the Stage before going into full screen and adding it back once the full screen transition has finished</a>
+            <br/>
+            <a id="ST400" href="#" class="scenario">RTMP Dynamic Streaming</a>
+            <br/>
+            <a id="HDS_PiP" href="#" class="scenario">HDS Picture in Picture</a>
+            <br/>
+            <br/>
+        </div>
+        <div class="docs">
+            <h3>Demo Outline</h3>            
+            <p>
+                You can select from a set of predefined advertisement scenarios and you can insert either linear or overlay ads using the provided interactive controls.
+            </p>
+            <p>
+                All the advertisements except the pre-rolls are being pre-buffered, so you should experience seamless playback for mid-rolls. (post-rolls need to be pre-buffered as well, but pre-buffering for post-rolls is not implemented yet).
+            </p>
+            <p>
+                Take a closer look at the Stage Video instance count which is being displayed in the info overlay (top-left corner). On desktops you should see 4 available StageVideo instances and you should see them being picked up as you add more overlay ads.
+            </p>
+           
+        </div>
+        <div class="details">
+        <h3>Details</h3>
+        <p>
+            The Advertisement Reference plug-in is intended to to demonstrate best practices related to ad insertion in OSMF-based players.
+
+        </p>
+        <p>
+            The plug-in provides both a JavaScript based API as well as a very simple configuration API (flashvars) which can be used when embedding the player.
+        </p>
+        <p>
+            You can view the source to learn about how the current configuration and JavaScript API work.
+		</p>
+            <h4>FlashVars configuration</h4>
+			<p>
+            To activate the plug-in, you simply load the plug-in as normal, but add a reference to the swf:
+            </p>
+            <pre><code>
+        plugin_ads: "AdvertisementPlugin.swf"
+            </code></pre>
+        	
+        <p>
+            For setting the pre-roll, mid-roll and the post-roll ads, all you need is to add the paths to the ads and the time when the mid-roll ad or the overlay ad needs to be displayed.
+        </p>
+        <p>
+            Note that this plug-in can be configured to load only one mid-roll ad and one overlay ad using the flashvars configuration. 
+			Feel free to extend it as needed, or to use the JavaScript API described below.
+        </p>
+        <pre><code>	
+		ads_preroll: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+		ads_postroll: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+		ads_midroll: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+		ads_midrollTime: 20,
+		ads_overlay: "http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv",
+		ads_overlayTime: 25
+			</code></pre>
+        </p>
+		<h4>The JavaScript API</h4>
+        <p>
+            For using the JavaScript API exposed by the plugin you need to get the reference to the StrobeMediaPlayback instance and simply interact with the plugin.
+        </p>
+        <p>
+            The following snippet will insert an overlay ad, at some random position. 
+        </p>
+        <pre><code>	
+		player.strobeMediaPlayback.displayNonLiniarAd (
+			"http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv", {
+				right: options.width/2 * Math.random(),
+				bottom: options.height/2 * Math.random(),
+				scaleMode: "none"});
+			</code></pre>
+        <p>
+            The following snippet will interrupt the current media playback and will play a linear ad instead:
+        </p>
+        <pre><code>	
+		player.strobeMediaPlayback.displayLiniarAd("http://gcdn.2mdn.net/MotifFiles/html/1379578/PID_938961_1237818260000_women.flv");
+			</code></pre>
+        <!--<p>Once loaded, the plugin will expose two javascript functions that can be used for</p> -->
+    </div>
+    <div class="notimplementedyet">
+        <h3>Known Limitations</h3>
+        <ol>
+            <li>
+                Strobe Media Playback needs to disable the scrubBar while the linear ads are being played back. (not implemented yet) 
+            </li>
+			<li>
+                Strobe Media Playback needs to display a widget during linear ad playback. This can be something like this: "Advertisement. Video will resume in 10 seconds..." 
+            </li>
+			<li>                
+                The plugin does not handle the ordering (depth) of the advertisements at this point. While using the plugin you should be aware that the advertisement that
+                is added last will be added on top of the other medias/ads that are being currently played.
+            </li>
+			<li>                
+	            With the current implementation of this plug-in, it should be pretty simple to create any kind of interactive ads you can imagine. This is just a start.
+            </li>
+        </ol>
+    </div>
+    </body>
+</html>
