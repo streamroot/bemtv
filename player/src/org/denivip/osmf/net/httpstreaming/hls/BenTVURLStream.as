@@ -55,7 +55,7 @@ package org.denivip.osmf.net.httpstreaming.hls
   /// The URLStream class provides low-level access to downloading URLs.
   public class BenTVURLStream extends URLStream
   {
-    private var myBytes:ByteArray = new ByteArray();
+    private var bentvBuffer:ByteArray = new ByteArray();
     private var _connected:Boolean;
 
     public function BenTVURLStream() {
@@ -91,9 +91,8 @@ package org.denivip.osmf.net.httpstreaming.hls
     }
 
     override public function get bytesAvailable ():uint {
-      return myBytes.bytesAvailable;
+      return bentvBuffer.bytesAvailable;
     }
-
 
     override public function close ():void {
       ExternalInterface.call("console.log", "BenTVURLStream - close called ");
@@ -106,22 +105,22 @@ package org.denivip.osmf.net.httpstreaming.hls
     }
 
     public function resourceLoaded(resource:String):void {
-      myBytes = Base64.decodeToByteArray(resource);
-      myBytes.position = 0;
-      dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, myBytes.bytesAvailable, myBytes.bytesAvailable));
+      bentvBuffer = Base64.decodeToByteArray(resource);
+      bentvBuffer.position = 0;
+      dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, bentvBuffer.bytesAvailable, bentvBuffer.bytesAvailable));
       dispatchEvent(new Event(Event.COMPLETE));
     }
 
     override public function readByte():int {
-      return myBytes.readByte();
+      return bentvBuffer.readByte();
     }
 
     override public function readUnsignedShort():uint {
-      return myBytes.readUnsignedShort();
+      return bentvBuffer.readUnsignedShort();
     }
 
     override public function readBytes(bytes:ByteArray, offset:uint = 0, length:uint = 0):void {
-        myBytes.readBytes(bytes, offset, length);
+        bentvBuffer.readBytes(bytes, offset, length);
     }
   }
 }

@@ -15,13 +15,10 @@ BenTVConnector.prototype = {
     this.xmlhttp.responseType = 'arraybuffer';
     this.xmlhttp.onload = this.readBytes;
     this.xmlhttp.send();
-
-    return parseInt(this.xmlhttp.getResponseHeader("Content-Length"), 10);
   },
 
   readBytes: function(e) {
-    var len = parseInt(e.currentTarget.getResponseHeader("Content-Length"), 10);
-    console.log("[BenTVConnector] Reading bytes: " + len);
+    console.log("[BenTVConnector] Reading bytes");
     var res = base64ArrayBuffer(e.currentTarget.response);
     document['BenTVplayer'].resourceLoaded(res);
   }
