@@ -55,7 +55,7 @@ package org.denivip.osmf.net.httpstreaming.hls
   /// The URLStream class provides low-level access to downloading URLs.
   public class BemTVURLStream extends URLStream
   {
-    private var bentvBuffer:ByteArray = new ByteArray();
+    private var bemtvBuffer:ByteArray = new ByteArray();
     private var _connected:Boolean;
 
     public function BemTVURLStream() {
@@ -91,7 +91,7 @@ package org.denivip.osmf.net.httpstreaming.hls
     }
 
     override public function get bytesAvailable ():uint {
-      return bentvBuffer.bytesAvailable;
+      return bemtvBuffer.bytesAvailable;
     }
 
     override public function close ():void {
@@ -100,27 +100,28 @@ package org.denivip.osmf.net.httpstreaming.hls
 
     override public function load(request:URLRequest):void {
       ExternalInterface.call("console.log", "BemTVURLStream - load called " + request.url);
-      ExternalInterface.call("bentvConnector.requestResource", request.url);
+      ExternalInterface.call("bemtvConnector.requestResource", request.url);
       dispatchEvent(new Event(Event.OPEN));
     }
 
     public function resourceLoaded(resource:String):void {
-      bentvBuffer = Base64.decodeToByteArray(resource);
-      bentvBuffer.position = 0;
-      dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, bentvBuffer.bytesAvailable, bentvBuffer.bytesAvailable));
+      ExternalInterface.call("console.log", "BemTVURLStream - resourceLoaded called ");
+      bemtvBuffer = Base64.decodeToByteArray(resource);
+      bemtvBuffer.position = 0;
+      dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, bemtvBuffer.bytesAvailable, bemtvBuffer.bytesAvailable));
       dispatchEvent(new Event(Event.COMPLETE));
     }
 
     override public function readByte():int {
-      return bentvBuffer.readByte();
+      return bemtvBuffer.readByte();
     }
 
     override public function readUnsignedShort():uint {
-      return bentvBuffer.readUnsignedShort();
+      return bemtvBuffer.readUnsignedShort();
     }
 
     override public function readBytes(bytes:ByteArray, offset:uint = 0, length:uint = 0):void {
-        bentvBuffer.readBytes(bytes, offset, length);
+        bemtvBuffer.readBytes(bytes, offset, length);
     }
   }
 }
