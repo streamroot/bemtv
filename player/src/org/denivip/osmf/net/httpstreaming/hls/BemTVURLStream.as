@@ -53,12 +53,12 @@ package org.denivip.osmf.net.httpstreaming.hls
   [Event(name="complete", type="flash.events.Event")]
 
   /// The URLStream class provides low-level access to downloading URLs.
-  public class BenTVURLStream extends URLStream
+  public class BemTVURLStream extends URLStream
   {
     private var bentvBuffer:ByteArray = new ByteArray();
     private var _connected:Boolean;
 
-    public function BenTVURLStream() {
+    public function BemTVURLStream() {
       addEventListener(Event.OPEN, onOpen);
       addEventListener(Event.COMPLETE, onComplete);
       addEventListener(ProgressEvent.PROGRESS, onProgress);
@@ -86,7 +86,7 @@ package org.denivip.osmf.net.httpstreaming.hls
     }
 
     override public function get connected ():Boolean {
-      ExternalInterface.call("console.log", "BenTVURLStream - connected called " + _connected);
+      ExternalInterface.call("console.log", "BemTVURLStream - connected called " + _connected);
       return _connected;
     }
 
@@ -95,11 +95,11 @@ package org.denivip.osmf.net.httpstreaming.hls
     }
 
     override public function close ():void {
-      ExternalInterface.call("console.log", "BenTVURLStream - close called ");
+      ExternalInterface.call("console.log", "BemTVURLStream - close called ");
     }
 
     override public function load(request:URLRequest):void {
-      ExternalInterface.call("console.log", "BenTVURLStream - load called " + request.url);
+      ExternalInterface.call("console.log", "BemTVURLStream - load called " + request.url);
       ExternalInterface.call("bentvConnector.requestResource", request.url);
       dispatchEvent(new Event(Event.OPEN));
     }

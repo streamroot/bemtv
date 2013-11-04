@@ -5,9 +5,9 @@
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
         <script type="text/javascript" src="js/swfobject.js"></script>
         <script type="text/javascript" src="js/ParsedQueryString.js"></script>
-        <script type="text/javascript" src="js/BenTVConnector.js"></script>
+        <script type="text/javascript" src="js/BemTVConnector.js"></script>
         <script type="text/javascript">
-          var bentvConnector = new BenTVConnector();
+          var bemtvConnector = new BemTVConnector();
           var pqs = new ParsedQueryString();
           var parameterNames = pqs.params(false);
           var parameters = {
@@ -38,7 +38,7 @@
 
           swfobject.embedSWF(
             "static/StrobeMediaPlayback.swf"
-            , "BenTVplayer"
+            , "BemTVplayer"
             , 640
             , 480
             , "10.1.0"
@@ -49,7 +49,7 @@
                       wmode: wmodeValue
                   }
             , {
-                      name: "BenTVplayer"
+                      name: "BemTVplayer"
                   }
         );
 
@@ -61,8 +61,8 @@
         </script>
     </head>
     <body align=center>
-      <h1><img src="http://flavioribeiro.com/bentv/logo.png"></h1>
-      <div id="BenTVplayer">
+      <h1><img src="http://flavioribeiro.com/bemtv/logo.png"></h1>
+      <div id="BemTVplayer">
     </body>
 </html>
 

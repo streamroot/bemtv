@@ -1,16 +1,16 @@
-function BenTVConnector() {
+function BemTVConnector() {
   this._init();
 }
 
-BenTVConnector.version = "1.0";
+BemTVConnector.version = "1.0";
 
-BenTVConnector.prototype = {
+BemTVConnector.prototype = {
   _init: function() {
     this.xmlhttp = new XMLHttpRequest();
   },
 
   requestResource: function(url) {
-    console.log("[BenTVConnector] Resource Requested: " + url);
+    console.log("[BemTVConnector] Resource Requested: " + url);
     this.xmlhttp.open("GET", url, true);
     this.xmlhttp.responseType = 'arraybuffer';
     this.xmlhttp.onload = this.readBytes;
@@ -18,9 +18,9 @@ BenTVConnector.prototype = {
   },
 
   readBytes: function(e) {
-    console.log("[BenTVConnector] Reading bytes");
+    console.log("[BemTVConnector] Reading bytes");
     var res = base64ArrayBuffer(e.currentTarget.response);
-    document['BenTVplayer'].resourceLoaded(res);
+    document['BemTVplayer'].resourceLoaded(res);
   }
 }
 
