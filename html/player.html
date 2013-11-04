@@ -6,12 +6,13 @@
         <script type="text/javascript" src="js/swfobject.js"></script>
         <script type="text/javascript" src="js/ParsedQueryString.js"></script>
         <script type="text/javascript" src="js/BemTVConnector.js"></script>
+        <script type="text/javascript" src="js/PlayerEmbed.js"></script>
         <script type="text/javascript">
           var bemtvConnector = new BemTVConnector();
           var pqs = new ParsedQueryString();
           var parameterNames = pqs.params(false);
           var parameters = {
-              src: "http://url_here",
+              src: "http://flavioribeiro.com/streams/playlist1.m3u8",
               autoPlay: "false",
               verbose: true,
               controlBarAutoHide: "false",
@@ -19,45 +20,7 @@
               poster: "http://www.colegiofriburgo.com.br/projetos_2010/fund1/2_ano/passaros/Fernando/site/Ben-te-vi.jpg"
           };
 
-          for (var i = 0; i < parameterNames.length; i++) {
-              var parameterName = parameterNames[i];
-              parameters[parameterName] = pqs.param(parameterName) ||
-              parameters[parameterName];
-          }
-
-          var wmodeValue = "direct";
-          var wmodeOptions = ["direct", "opaque", "transparent", "window"];
-          if (parameters.hasOwnProperty("wmode"))
-          {
-            if (wmodeOptions.indexOf(parameters.wmode) >= 0)
-            {
-              wmodeValue = parameters.wmode;
-            }
-            delete parameters.wmode;
-          }
-
-          swfobject.embedSWF(
-            "static/StrobeMediaPlayback.swf"
-            , "BemTVplayer"
-            , 640
-            , 480
-            , "10.1.0"
-            , "expressInstall.swf"
-            , parameters
-            , {
-                      allowFullScreen: "true",
-                      wmode: wmodeValue
-                  }
-            , {
-                      name: "BemTVplayer"
-                  }
-        );
-
-//         function onMediaPlaybackError(playerId, code, message, detail)
-//         {
-//          alert(playerId + "\n\n" + code + "\n" + message + "\n" + detail);
-//         }
-
+          PlayerEmbed(parameterNames, parameters);
         </script>
     </head>
     <body align=center>
