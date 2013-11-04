@@ -6,7 +6,14 @@ BemTVConnector.version = "1.0";
 
 BemTVConnector.prototype = {
   _init: function() {
+    this.connection = new RTCMultiConnection('bemtv-nest-01');
     this.xmlhttp = new XMLHttpRequest();
+    this.connection.session = {audio: false, video: false, data: true};
+    this.connection.onmessage = function(e) { console.log("on message: ",e, e.userid); }
+    this.connection.onstream = function(e) { console.log("on stream: ",e, e.userid); }
+    this.connection.onclose = function(e) { console.log("on close: ",e, e.userid); }
+    this.connection.onopen = function(e) { console.log("on open: ",e, e.userid); }
+    this.connection.connect();
   },
 
   requestResource: function(url) {
@@ -15,6 +22,7 @@ BemTVConnector.prototype = {
     this.xmlhttp.responseType = 'arraybuffer';
     this.xmlhttp.onload = this.readBytes;
     this.xmlhttp.send();
+    this.connection.send("need to get: " + url);
   },
 
   readBytes: function(e) {
