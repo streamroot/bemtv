@@ -6,29 +6,62 @@ BemTVConnector.version = "1.0";
 
 BemTVConnector.prototype = {
   _init: function() {
+    self = this;
     this.connection = new RTCMultiConnection('bemtv-nest-01');
     this.xmlhttp = new XMLHttpRequest();
     this.connection.session = {audio: false, video: false, data: true};
-    this.connection.onmessage = function(e) { console.log("on message: ",e, e.userid); }
-    this.connection.onstream = function(e) { console.log("on stream: ",e, e.userid); }
+    this.connection.onmessage = function(e) { self.rtcReceiveData(self, e); }
     this.connection.onclose = function(e) { console.log("on close: ",e, e.userid); }
-    this.connection.onopen = function(e) { console.log("on open: ",e, e.userid); }
+    this.connection.onopen = function(e) { console.log("on open: ", e, e.userid); }
     this.connection.connect();
+    this.cache = {};
   },
 
   requestResource: function(url) {
-    console.log("[BemTVConnector] Resource Requested: " + url);
-    this.xmlhttp.open("GET", url, true);
-    this.xmlhttp.responseType = 'arraybuffer';
-    this.xmlhttp.onload = this.readBytes;
-    this.xmlhttp.send();
-    this.connection.send("need to get: " + url);
+    if (url.indexOf('m3u8') != -1) {
+      this.requestFromCDN(url);
+    } else {
+      this.connection.send({'type': 'need', 'url': url});
+      this.timeout = setTimeout(function() { console.log("TIMEOUT REACHED"); self.requestFromCDN(url); }, 2000);
+    }
   },
 
-  readBytes: function(e) {
-    console.log("[BemTVConnector] Reading bytes");
+  requestFromCDN: function(url) {
+    this.xmlhttp.open("GET", url, true);
+    this.xmlhttp.responseType = 'arraybuffer';
+    this.xmlhttp.onload = function(e) { self.readBytes(self, url, e) };
+    this.xmlhttp.send();
+  },
+
+  readBytes: function(self, url, e) {
     var res = base64ArrayBuffer(e.currentTarget.response);
-    document['BemTVplayer'].resourceLoaded(res);
+    self.cache[url] = res;
+    self.loadChunk(res);
+  },
+
+  rtcReceiveData: function(self, e) {
+    message = e.data;
+    console.log(message);
+
+    if (message.type == 'need') {
+      console.log("User " + e.userid + " is requesting " + message.url);
+      if (self.cache[message.url]) {
+        self.sendChunk(self, e.userid, self.cache[message.url]);
+      }
+    } else if (message.type == "deliver") {
+      console.log("Chunk received from bemtv nest. Killing timeout and playing.");
+      clearTimeout(self.timeout);
+      self.loadChunk(message.chunk);
+    }
+  },
+
+  sendChunk(self, dest, chunk) {
+    console.log("I have the file requested. Sending it. (size: ", chunk.length, ")");
+    self.connection.channels[dest].send({'type': 'deliver', 'chunk': chunk});
+  }
+
+  loadChunk(chunk) {
+    document['BemTVplayer'].resourceLoaded(chunk);
   }
 }
 

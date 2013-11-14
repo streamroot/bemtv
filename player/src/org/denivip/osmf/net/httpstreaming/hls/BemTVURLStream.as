@@ -69,16 +69,13 @@ package org.denivip.osmf.net.httpstreaming.hls
     }
 
     private function onOpen(event:Event):void {
-      ExternalInterface.call('console.log', 'Event.OPEN ' + event);
       _connected = true;
     }
 
     private function onComplete(event:Event):void {
-      ExternalInterface.call('console.log', 'Event.COMPLETE' + event);
     }
 
     private function onProgress(event:Event):void {
-      ExternalInterface.call('console.log', 'Event.PROGRESS' + event);
     }
 
     private function onError(event:Event):void {
@@ -86,7 +83,6 @@ package org.denivip.osmf.net.httpstreaming.hls
     }
 
     override public function get connected ():Boolean {
-      ExternalInterface.call("console.log", "BemTVURLStream - connected called " + _connected);
       return _connected;
     }
 
@@ -95,17 +91,14 @@ package org.denivip.osmf.net.httpstreaming.hls
     }
 
     override public function close ():void {
-      ExternalInterface.call("console.log", "BemTVURLStream - close called ");
     }
 
     override public function load(request:URLRequest):void {
-      ExternalInterface.call("console.log", "BemTVURLStream - load called " + request.url);
       ExternalInterface.call("bemtvConnector.requestResource", request.url);
       dispatchEvent(new Event(Event.OPEN));
     }
 
     public function resourceLoaded(resource:String):void {
-      ExternalInterface.call("console.log", "BemTVURLStream - resourceLoaded called ");
       bemtvBuffer = Base64.decodeToByteArray(resource);
       bemtvBuffer.position = 0;
       dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, bemtvBuffer.bytesAvailable, bemtvBuffer.bytesAvailable));
