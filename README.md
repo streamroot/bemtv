@@ -1,4 +1,3 @@
-![bentv logo](http://flavioribeiro.com/bemtv/logo.png)
 
 A hybrid Peer-to-Peer Model to HTTP Live Streaming (HLS) Content Delivery Networks
 
