@@ -16,6 +16,7 @@ BemTVConnector.prototype = {
   },
 
   requestFromCDN: function(url) {
+    console.log("bemtv - requesting " + url);
     this.p2prequest.open("GET", url);
     this.p2prequest.onload = function(e) {
       console.log("Chunk received!");
