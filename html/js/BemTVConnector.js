@@ -7,7 +7,6 @@ BemTVConnector.version = "1.0";
 BemTVConnector.prototype = {
   _init: function() {
     self = this;
-    this.p2prequest = new peer5.Request();
   },
 
   requestResource: function(url) {
@@ -16,6 +15,7 @@ BemTVConnector.prototype = {
 
   requestFromCDN: function(url) {
     console.log("Requesting " + url);
+    this.p2prequest = new peer5.Request();
     this.p2prequest.open("GET", url);
     this.p2prequest.onload = function(e) {
       self.readBytes(self, url, e);
