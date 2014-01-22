@@ -15,10 +15,9 @@ BemTVConnector.prototype = {
   },
 
   requestFromCDN: function(url) {
-    console.log("bemtv - requesting " + url);
+    console.log("Requesting " + url);
     this.p2prequest.open("GET", url);
     this.p2prequest.onload = function(e) {
-      console.log("Chunk received on filesystem: " + e.currentTarget.response);
       self.readBytes(self, url, e);
     };
 
@@ -43,7 +42,6 @@ BemTVConnector.prototype = {
 
   loadChunk: function(chunk) {
      console.log("Loading chunk of size " + chunk.length);
-     console.log(document['BemTVplayer']);
      document['BemTVplayer'].resourceLoaded(chunk);
   }
 }
@@ -58,7 +56,6 @@ function str2ab2(str, len) {
 }
 
 function base64ArrayBuffer(arrayBuffer) {
-  console.log("arrayBuffer: " + arrayBuffer);
   var base64    = ''
   var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
   var bytes         = new Uint8Array(arrayBuffer)
@@ -89,6 +86,5 @@ function base64ArrayBuffer(arrayBuffer) {
     base64 += encodings[a] + encodings[b] + encodings[c] + '='
   }
 
-  console.log("base64: " + base64);
   return base64;
 }
