@@ -8,7 +8,6 @@ BemTVConnector.prototype = {
   _init: function() {
     self = this;
     this.p2prequest = new peer5.Request();
-    this.cache = {};
   },
 
   requestResource: function(url) {
@@ -19,26 +18,47 @@ BemTVConnector.prototype = {
     console.log("bemtv - requesting " + url);
     this.p2prequest.open("GET", url);
     this.p2prequest.onload = function(e) {
-      console.log("Chunk received!");
+      console.log("Chunk received on filesystem: " + e.currentTarget.response);
       self.readBytes(self, url, e);
     };
 
     this.p2prequest.onprogress = function(e) {
-      console.log(e.loadedHTTP);
-      console.log(e.loadedP2P);
+      console.log("Bytes from CDN: " + e.loadedHTTP);
+      console.log("Bytes from P2P: " + e.loadedP2P);
     }
 
     this.p2prequest.send();
   },
 
   readBytes: function(self, url, e) {
-    var res = base64ArrayBuffer(e.currentTarget.response);
-    self.cache[url] = res;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', e.currentTarget.response, false);
+    xhr.overrideMimeType("text/plain; charset=x-user-defined");
+    xhr.send();
+
+    var len = parseInt(xhr.getResponseHeader("Content-Length"), 10);
+    var res = base64ArrayBuffer(str2ab2(xhr.response, xhr.response.length));
     self.loadChunk(res);
   },
+
+  loadChunk: function(chunk) {
+     console.log("Loading chunk of size " + chunk.length);
+     console.log(document['BemTVplayer']);
+     document['BemTVplayer'].resourceLoaded(chunk);
+  }
+}
+
+function str2ab2(str, len) {
+  var buf = new ArrayBuffer(len); // 2 bytes for each char
+  var bufView = new Uint8Array(buf);
+  for (var i=0; i<len; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return buf;
 }
 
 function base64ArrayBuffer(arrayBuffer) {
+  console.log("arrayBuffer: " + arrayBuffer);
   var base64    = ''
   var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
   var bytes         = new Uint8Array(arrayBuffer)
@@ -69,6 +89,6 @@ function base64ArrayBuffer(arrayBuffer) {
     base64 += encodings[a] + encodings[b] + encodings[c] + '='
   }
 
-  return base64
+  console.log("base64: " + base64);
+  return base64;
 }
-
