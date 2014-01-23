@@ -1,29 +1,22 @@
 package org.denivip.osmf.elements.m3u8Classes
 {
-	import flash.events.Event;
 	import flash.events.EventDispatcher;
-	import flash.events.IOErrorEvent;
-	import flash.events.SecurityErrorEvent;
-	import flash.net.URLLoader;
-	import flash.net.URLRequest;
-	import flash.utils.Dictionary;
 	
-	import org.denivip.osmf.metadata.HLSMetadata;
-	import org.denivip.osmf.net.HLSDynamicStreamingItem;
 	import org.denivip.osmf.net.HLSDynamicStreamingResource;
+	import org.denivip.osmf.utility.Url;
 	import org.osmf.events.ParseEvent;
 	import org.osmf.logging.Log;
 	import org.osmf.logging.Logger;
 	import org.osmf.media.MediaResourceBase;
+	import org.osmf.media.MediaType;
 	import org.osmf.media.URLResource;
 	import org.osmf.metadata.Metadata;
 	import org.osmf.metadata.MetadataNamespaces;
 	import org.osmf.net.DynamicStreamingItem;
 	import org.osmf.net.DynamicStreamingResource;
 	import org.osmf.net.StreamType;
+	import org.osmf.net.StreamingItem;
 	import org.osmf.net.StreamingURLResource;
-	import org.osmf.net.httpstreaming.dvr.DVRInfo;
-	import org.osmf.utils.URL;
 	
 	
 	[Event(name="parseComplete", type="org.osmf.events.ParseEvent")]
@@ -59,6 +52,8 @@ package org.denivip.osmf.elements.m3u8Classes
 			var streamItems:Vector.<DynamicStreamingItem>;
 			var tempStreamingRes:StreamingURLResource = null;
 			var tempDynamicRes:DynamicStreamingResource = null;
+			var alternateStreams:Vector.<StreamingItem> = null;
+			var initialStreamName:String = '';
 			for(var i:int = 1; i < lines.length; i++){
 				var line:String = String(lines[i]).replace(/^([\s|\t|\n]+)?(.*)([\s|\t|\n]+)?$/gm, "$2");
 				
@@ -104,9 +99,38 @@ package org.denivip.osmf.elements.m3u8Classes
 					}
 					
 					var name:String = lines[i+1];
-					streamItems.push(new HLSDynamicStreamingItem(name, bw, width, height));
-					
+					streamItems.push(new DynamicStreamingItem(name, bw, width, height));
+					// store stream name of first stream encountered
+					if(initialStreamName == ''){
+						initialStreamName = name;
+					}
 					DynamicStreamingResource(result).streamItems = streamItems;
+				}
+				
+				if(line.indexOf("#EXT-X-MEDIA:") == 0){
+					if(line.search(/TYPE=(.*?)\W/) > 0 && line.match(/TYPE=(.*?)\W/)[1] == 'AUDIO'){
+						var stUrl:String;
+						var lang:String;
+						var stName:String;
+						if(line.search(/URI="(.*?)"/) > 0){
+							stUrl = line.match(/URI="(.*?)"/)[1];
+							if(stUrl.search(/(file|https?):\/\//) != 0){
+								stUrl = baseResource.url.substr(0, baseResource.url.lastIndexOf('/')+1) + stUrl;
+							}
+						}
+						if(line.search(/LANGUAGE="(.*?)"/) > 0){
+							lang = line.match(/LANGUAGE="(.*?)"/)[1]
+						}
+						if(line.search(/NAME="(.*?)"/) > 0){
+							stName = line.match(/NAME="(.*?)"/)[1];
+						}
+						if(!alternateStreams)
+							alternateStreams = new Vector.<StreamingItem>();
+						
+						alternateStreams.push(
+							new StreamingItem(MediaType.AUDIO, stUrl, 0, {label:stName, language:lang})
+						);
+					}
 				}
 			}
 			
@@ -114,7 +138,13 @@ package org.denivip.osmf.elements.m3u8Classes
 				if(tempDynamicRes.streamItems.length == 1){
 					tempStreamingRes = baseResource as StreamingURLResource;
 					if(tempStreamingRes){
-						var url:String = tempDynamicRes.host + tempDynamicRes.streamItems[0].streamName;
+						// var url:String = (lines[i].search(/(ftp|file|https?):\/\//) == 0) ?  lines[i] : rateItem.url.substr(0, rateItem.url.lastIndexOf('/')+1) + lines[i];
+						/*
+						var url:String = (tempDynamicRes.streamItems[0].streamName.search(/(ftp|file|https?):\/\//) == 0) 
+							? tempDynamicRes.streamItems[0].streamName 
+							: tempDynamicRes.host.substr(0, tempDynamicRes.host.lastIndexOf('/')+1) + tempDynamicRes.streamItems[0].streamName;
+						*/
+						var url:String = Url.absolute(tempDynamicRes.host, tempDynamicRes.streamItems[0].streamName);
 						result = new StreamingURLResource(
 							url,
 							tempStreamingRes.streamType,
@@ -125,17 +155,27 @@ package org.denivip.osmf.elements.m3u8Classes
 							tempStreamingRes.drmContentData
 						);
 					}
-				}else if(baseResource.getMetadataValue(MetadataNamespaces.RESOURCE_INITIAL_INDEX) != null){
-					var initialIndex:int = baseResource.getMetadataValue(MetadataNamespaces.RESOURCE_INITIAL_INDEX) as int;
-					tempDynamicRes.initialIndex = initialIndex < 0 ? 0 : (initialIndex >= tempDynamicRes.streamItems.length) ? (tempDynamicRes.streamItems.length-1) : initialIndex;
+				}else{
+					if(baseResource.getMetadataValue(MetadataNamespaces.RESOURCE_INITIAL_INDEX) != null){
+						var initialIndex:int = baseResource.getMetadataValue(MetadataNamespaces.RESOURCE_INITIAL_INDEX) as int;
+						tempDynamicRes.initialIndex = initialIndex < 0 ? 0 : (initialIndex >= tempDynamicRes.streamItems.length) ? (tempDynamicRes.streamItems.length-1) : initialIndex;
+					}else{
+						// set initialIndex to index of first stream name encountered
+						tempDynamicRes.initialIndex = tempDynamicRes.indexFromName(initialStreamName);
+					}
 				}
 			}
 			
-			var hlsMetadata:HLSMetadata = new HLSMetadata();
-			result.addMetadataValue(HLSMetadata.HLS_METADATA, hlsMetadata);
+			baseResource.addMetadataValue("HLS_METADATA", new Metadata()); // fix for multistreaming resources
+			result.addMetadataValue("HLS_METADATA", new Metadata());
 			
 			var httpMetadata:Metadata = new Metadata();
 			result.addMetadataValue(MetadataNamespaces.HTTP_STREAMING_METADATA, httpMetadata);
+			
+			if(alternateStreams && result is StreamingURLResource){
+				(result as StreamingURLResource).alternativeAudioStreamItems = alternateStreams;
+			}
+			
 			if(result is StreamingURLResource && StreamingURLResource(result).streamType == StreamType.DVR){
 				var dvrMetadata:Metadata = new Metadata();
 				result.addMetadataValue(MetadataNamespaces.DVR_METADATA, dvrMetadata);

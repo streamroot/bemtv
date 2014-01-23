@@ -1,6 +1,5 @@
 package org.denivip.osmf.net
 {
-	import org.osmf.net.DynamicStreamingItem;
 	import org.osmf.net.DynamicStreamingResource;
 	
 	/**

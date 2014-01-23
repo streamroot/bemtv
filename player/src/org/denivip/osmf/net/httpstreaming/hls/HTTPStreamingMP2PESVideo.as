@@ -24,12 +24,10 @@
  
 package org.denivip.osmf.net.httpstreaming.hls
 {
-	import __AS3__.vec.Vector;
-	
 	import flash.utils.ByteArray;
 	
-	import org.denivip.osmf.logging.HLSLogger;
 	import org.osmf.logging.Log;
+	import org.osmf.logging.Logger;
 	import org.osmf.net.httpstreaming.flv.FLVTagVideo;
 
 	internal class HTTPStreamingMP2PESVideo extends HTTPStreamingMP2PESBase
@@ -39,6 +37,9 @@ package org.denivip.osmf.net.httpstreaming.hls
 		private var _vTag:FLVTagVideo;
 		private var _vTagData:ByteArray;
 		private var _scState:int;
+		
+		private var spsNAL:HTTPStreamingH264NALU = null;
+		private var ppsNAL:HTTPStreamingH264NALU = null;
 		
 		public function HTTPStreamingMP2PESVideo()
 		{
@@ -53,10 +54,10 @@ package org.denivip.osmf.net.httpstreaming.hls
 			if(pusi)
 			{
 				// start of a new PES packet
-				
-				if(packet.readUnsignedInt() != 0x1e0)
+				var startCode:uint =  packet.readUnsignedInt();
+				if(startCode != 0x1e0 && startCode != 0x1ea && startCode != 0x1bd)
 				{
-						throw new Error("PES start code not found or not AAC/AVC");
+					throw new Error("PES start code not found or not AAC/AVC");
 				}
 				// Ignore packet length and marker bits.
 				packet.position += 3;
@@ -65,23 +66,24 @@ package org.denivip.osmf.net.httpstreaming.hls
 				CONFIG::LOGGING
 				{
 					if(flags != 0x03) {
-						logger.warn("video PES packet without both PTS and DTS");
+						logger.warn("video PES packet without DTS");
 					}
 				}
 				
-				if(flags != 0x03 && flags != 0x02)
+				if(flags != 0x03 && flags != 0x02 && flags != 0x00)
 				{
 					throw new Error("video PES packet without PTS cannot be decoded");
 				}
 				// Check PES header length
 				var length:uint = packet.readUnsignedByte();
-				var pts:Number = 
-					((packet.readUnsignedByte() & 0x0e) << 29) + 
-					((packet.readUnsignedShort() & 0xfffe) << 14) + 
-					((packet.readUnsignedShort() & 0xfffe) >> 1);
-		
+				var pts:Number =
+					uint((packet.readUnsignedByte() & 0x0e) << 29) +
+					uint((packet.readUnsignedShort() & 0xfffe) << 14) +
+					uint((packet.readUnsignedShort() & 0xfffe) >> 1);
+				
 				length -= 5;
-	
+				
+				var timestamp:Number;
 				if(flags == 0x03)
 				{
 					var dts:Number = 
@@ -89,16 +91,34 @@ package org.denivip.osmf.net.httpstreaming.hls
 						((packet.readUnsignedShort() & 0xfffe) << 14) + 
 						((packet.readUnsignedShort() & 0xfffe) >> 1);
 						
-					_timestamp = Math.round(dts/90);
-					_compositionTime =  Math.round(pts/90) - _timestamp;
+					timestamp = Math.round(dts/90);
+					_compositionTime =  Math.round(pts/90) - timestamp;
 					length -= 5;
 				}
 				else
 				{
-					_timestamp = Math.round(pts/90);
+					timestamp = Math.round(pts/90);
 					_compositionTime = 0;
 				}
+				
+				if(!_timestampReseted) {
+					_offset += timestamp - _prevTimestamp;
+				}
 
+				if (_isDiscontunity || (!_streamOffsetSet)) {// && _prevTimestamp == 0)) { -- in most cases _prevTimestamp (like any timestamps in stream) can't be 0.
+					/*if(timestamp > 0) {
+						_offset += timestamp;
+					}*/
+					_timestamp = _initialTimestamp;
+					_streamOffsetSet = true;
+				}else{
+					_timestamp = _initialTimestamp + _offset;
+				}
+				
+				_prevTimestamp = timestamp;
+				_timestampReseted = false;
+				_isDiscontunity = false;
+				
 				// Skip other header data.
 				packet.position += length;
 			}
@@ -189,9 +209,6 @@ package org.denivip.osmf.net.httpstreaming.hls
 			
 			if(!flush && packet.position-dStart > 0)
 				_nalData.writeBytes(packet, dStart, packet.position-dStart);
-					
-			var spsNAL:HTTPStreamingH264NALU = null;
-			var ppsNAL:HTTPStreamingH264NALU = null;
 			
 			// find  SPS + PPS if we can
 			for each(nal in nals)
@@ -212,7 +229,8 @@ package org.denivip.osmf.net.httpstreaming.hls
 			var tags:Vector.<FLVTagVideo> = new Vector.<FLVTagVideo>;
 			var tag:FLVTagVideo;
 			var avccTag:FLVTagVideo = null;
-						
+			var avcc:ByteArray = new ByteArray();
+			
 			// note that this breaks if the sps and pps are in different segments that we process
 			
 			if(spsNAL && ppsNAL)
@@ -225,8 +243,6 @@ package org.denivip.osmf.net.httpstreaming.hls
 				tag.codecID = FLVTagVideo.CODEC_ID_AVC;
 				tag.frameType = FLVTagVideo.FRAME_TYPE_KEYFRAME;
 				tag.avcPacketType = FLVTagVideo.AVC_PACKET_TYPE_SEQUENCE_HEADER;
-				
-				var avcc:ByteArray = new ByteArray();
 				
 				avcc.writeByte(0x01); // avcC version 1
 				// profile, compatibility, level
@@ -245,6 +261,9 @@ package org.denivip.osmf.net.httpstreaming.hls
 				
 				tags.push(tag);
 				avccTag = tag;
+				
+				spsNAL = null;
+				ppsNAL = null;
 			}
 			
 			for each(nal in nals)
@@ -275,8 +294,8 @@ package org.denivip.osmf.net.httpstreaming.hls
 					_vTag = new FLVTagVideo();
 					_vTagData = new ByteArray(); // we assemble the nalus outside, set at end
 					
-					 _vTagData.writeUnsignedInt(nal.length);
-					 _vTagData.writeBytes(nal.NALdata); // start with this very NAL, an AUD (XXX not sure this is needed)
+					_vTagData.writeUnsignedInt(nal.length);
+					_vTagData.writeBytes(nal.NALdata); // start with this very NAL, an AUD (XXX not sure this is needed)
 					
 					_vTag.codecID = FLVTagVideo.CODEC_ID_AVC;
 					_vTag.frameType = FLVTagVideo.FRAME_TYPE_INTER; // adjust to keyframe later
@@ -298,11 +317,11 @@ package org.denivip.osmf.net.httpstreaming.hls
 						_vTag.frameType = FLVTagVideo.FRAME_TYPE_INTER; // adjust to keyframe later
 						_vTag.avcPacketType = FLVTagVideo.AVC_PACKET_TYPE_NALU;
 						_vTag.timestamp = _timestamp;
-						_vTag.avcCompositionTimeOffset = _compositionTime;	
+						_vTag.avcCompositionTimeOffset = _compositionTime;
 					}
 					
 					
-					if(nal.NALtype == 5) // is this correct code?
+					if(nal.NALtype == 5) // if keyframe
 					{
 						_vTag.frameType = FLVTagVideo.FRAME_TYPE_KEYFRAME;
 					}
@@ -349,7 +368,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 		
 		CONFIG::LOGGING
 		{
-			private var logger:HLSLogger = Log.getLogger('org.denivip.osmf.net.httpstreaming.hls.HTTPStreamingMP2PESVideo') as HLSLogger;
+			private var logger:Logger = Log.getLogger('org.denivip.osmf.net.httpstreaming.hls.HTTPStreamingMP2PESVideo') as Logger;
 		}
 	
 	} // class

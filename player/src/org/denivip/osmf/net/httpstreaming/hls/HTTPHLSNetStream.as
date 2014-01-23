@@ -21,6 +21,7 @@
  *****************************************************/
 package org.denivip.osmf.net.httpstreaming.hls
 {
+	import flash.events.Event;
 	import flash.events.NetStatusEvent;
 	import flash.events.TimerEvent;
 	import flash.net.NetConnection;
@@ -30,10 +31,8 @@ package org.denivip.osmf.net.httpstreaming.hls
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	
-	import mx.core.mx_internal;
-	
 	import org.denivip.osmf.events.HTTPHLSStreamingEvent;
-	import org.denivip.osmf.logging.HLSLogger;
+	import org.denivip.osmf.plugins.HLSSettings;
 	import org.osmf.events.DVRStreamInfoEvent;
 	import org.osmf.events.HTTPStreamingEvent;
 	import org.osmf.events.QoSInfoEvent;
@@ -44,12 +43,8 @@ package org.denivip.osmf.net.httpstreaming.hls
 	import org.osmf.net.NetStreamCodes;
 	import org.osmf.net.NetStreamPlaybackDetailsRecorder;
 	import org.osmf.net.StreamingURLResource;
-	import org.osmf.net.httpstreaming.HTTPNetStream;
 	import org.osmf.net.httpstreaming.HTTPStreamHandlerQoSInfo;
-	import org.osmf.net.httpstreaming.HTTPStreamMixer;
-	import org.osmf.net.httpstreaming.HTTPStreamSource;
 	import org.osmf.net.httpstreaming.HTTPStreamingFactory;
-	import org.osmf.net.httpstreaming.HTTPStreamingUtils;
 	import org.osmf.net.httpstreaming.IHTTPStreamHandler;
 	import org.osmf.net.httpstreaming.IHTTPStreamSource;
 	import org.osmf.net.httpstreaming.dvr.DVRInfo;
@@ -79,8 +74,6 @@ package org.denivip.osmf.net.httpstreaming.hls
 		import flash.events.DRMStatusEvent;
 	}
 	
-	[ExcludeClass]
-
 	[Event(name="DVRStreamInfo", type="org.osmf.events.DVRStreamInfoEvent")]
 	
 	[Event(name="runAlgorithm", type="org.osmf.events.HTTPStreamingEvent")]
@@ -106,18 +99,15 @@ package org.denivip.osmf.net.httpstreaming.hls
 	 */	
 	public class HTTPHLSNetStream extends NetStream
 	{
-		// Buffer control
-		private static const BUFFER_SIZE_PAUSE:Number = 32;
-		private static const BUFFER_SIZE_BIG:Number = 16;
-		private static const BUFFER_SIZE_DEF:Number = OSMFSettings.hdsMinimumBufferTime;
+		private var _reloadTryCount:int = 0;
 		
 		/**
 		 * Constructor.
 		 * 
 		 * @param connection The NetConnection to use.
-		 * @param indexHandler Object which exposes the index, which maps
+		 * @param factory Object which exposes the index, which maps
 		 * playback times to media file fragments.
-		 * @param fileHandler Object which canunmarshal the data from a
+		 * @param resource Object which canunmarshal the data from a
 		 * media file fragment so that it can be fed to the NetStream as
 		 * TCMessages.
 		 *  
@@ -160,7 +150,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 			createSource(resource);
 			
 			_mainTimer = new Timer(OSMFSettings.hdsMainTimerInterval); 
-			_mainTimer.addEventListener(TimerEvent.TIMER, onMainTimer);	
+			_mainTimer.addEventListener(TimerEvent.TIMER, onMainTimer);
 		}
 		
 		///////////////////////////////////////////////////////////////////////
@@ -370,15 +360,6 @@ package org.denivip.osmf.net.httpstreaming.hls
 			}
 		}
 		
-		/**
-		 * @return true if BestEffortFetch is enabled.
-		 */
-		public function get isBestEffortFetchEnabled():Boolean
-		{
-			return _source != null &&
-				_source.isBestEffortFetchEnabled;
-		}
-		
 		///////////////////////////////////////////////////////////////////////
 		/// Internals
 		///////////////////////////////////////////////////////////////////////
@@ -504,12 +485,13 @@ package org.denivip.osmf.net.httpstreaming.hls
 				{
 					logger.debug("Initiating change of audio stream to [" + _desiredAudioStreamName + "]");
 				}
-				
-				var audioResource:MediaResourceBase = HTTPStreamingUtils.createHTTPStreamingResource(_resource, _desiredAudioStreamName);
+				var audioResource:MediaResourceBase;
+				if(_desiredAudioStreamName)
+					audioResource = new StreamingURLResource(_desiredAudioStreamName);
 				if (audioResource != null)
 				{
 					// audio handler is not dispatching events on the NetStream
-					_mixer.audio = new HTTPStreamSource(_factory, audioResource, _mixer);
+					_mixer.audio = new HTTPHLSStreamSource(_factory, audioResource, _mixer);
 					_mixer.audio.open(_desiredAudioStreamName);
 				}
 				else
@@ -540,7 +522,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 			{
 				case NetStreamCodes.NETSTREAM_PLAY_START:
 					if(!_started){
-						bufferTime = BUFFER_SIZE_DEF;
+						bufferTime = OSMFSettings.hdsMinimumBufferTime;//HLSSettings.hlsBufferSizeDef;
 						_started = true;
 						CONFIG::LOGGING
 						{
@@ -549,7 +531,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 					}
 					break;
 				case NetStreamCodes.NETSTREAM_PAUSE_NOTIFY:
-					bufferTime = BUFFER_SIZE_PAUSE;
+					bufferTime = HLSSettings.hlsBufferSizePause;
 					CONFIG::LOGGING
 					{
 						logger.debug("Playback paused. Buffer size ="+bufferTime);
@@ -578,7 +560,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 							_notifyPlayUnpublishPending = false; 
 						}
 					}
-					bufferTime = BUFFER_SIZE_DEF;
+					bufferTime = OSMFSettings.hdsMinimumBufferTime;//HLSSettings.hlsBufferSizeDef;
 					break;
 				
 				case NetStreamCodes.NETSTREAM_BUFFER_FULL:
@@ -587,7 +569,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 					{
 						logger.debug("Received NETSTREAM_BUFFER_FULL. _wasBufferEmptied = "+_wasBufferEmptied+" bufferLength "+this.bufferLength);
 					}
-					bufferTime = BUFFER_SIZE_BIG;
+					bufferTime = (bufferTime >= HLSSettings.hlsBufferSizeDef) ? HLSSettings.hlsBufferSizeBig : HLSSettings.hlsBufferSizeDef;
 					break;
 				
 				case NetStreamCodes.NETSTREAM_BUFFER_FLUSH:
@@ -615,7 +597,14 @@ package org.denivip.osmf.net.httpstreaming.hls
 							logger.debug("Seek notify caught and stopped");
 						}
 					}
-					bufferTime = BUFFER_SIZE_DEF;
+					bufferTime = OSMFSettings.hdsMinimumBufferTime;//HLSSettings.hlsBufferSizeDef;
+					break;
+				
+				default:
+					// Some http based error?  If yes, shut'er down.
+					var httpCode:int = parseInt(event.info.code);
+					if( !isNaN(httpCode) && httpCode >= 400 )
+						close();
 					break;
 			}
 			
@@ -675,10 +664,10 @@ package org.denivip.osmf.net.httpstreaming.hls
 		 */  
 		private function onMainTimer(timerEvent:TimerEvent):void
 		{
-			if (seeking && time != timeBeforeSeek)
+			if (_seeking && time != _timeBeforeSeek)
 			{
-				seeking = false;
-				timeBeforeSeek = Number.NaN;
+				_seeking = false;
+				_timeBeforeSeek = Number.NaN;
 				
 				CONFIG::LOGGING
 				{
@@ -728,10 +717,10 @@ package org.denivip.osmf.net.httpstreaming.hls
 					// we may call seek before our stream provider is
 					// able to fulfill our request - so we'll stay in seek
 					// mode until the provider is ready.
-					if (_source.isReady)
+					if (_source.isReady )
 					{
-						timeBeforeSeek = time;
-						seeking = true;
+						_timeBeforeSeek = time;
+						_seeking = true;
 						
 						// cleaning up the previous seek info
 						_flvParser = null;
@@ -766,7 +755,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 									logger.debug("Seeking before the last transition completed. Inserting TRANSITION_COMPLETE message in stream.");
 								}
 								
-								var info:Object = new Object();
+								var info:Object = {};
 								info.code = NetStreamCodes.NETSTREAM_PLAY_TRANSITION_COMPLETE;
 								info.level = "status";
 								info.details = lastTransitionStreamURL;
@@ -808,7 +797,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 						issueLivenessEventsIfNeeded();
 						if (bytes != null)
 						{
-							processed += processAndAppend(bytes);	
+							processed += processAndAppend(bytes);
 						}
 						
 						if (
@@ -871,7 +860,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 						appendBytesAction(NetStreamAppendBytesAction.RESET_SEEK);
 					}
 					
-					var playCompleteInfo:Object = new Object();
+					var playCompleteInfo:Object = {};
 					playCompleteInfo.code = NetStreamCodes.NETSTREAM_PLAY_COMPLETE;
 					playCompleteInfo.level = "status";
 					
@@ -1013,15 +1002,12 @@ package org.denivip.osmf.net.httpstreaming.hls
 			var liveStallTolerance:Number =
 				(this.bufferLength + Math.max(OSMFSettings.hdsLiveStallTolerance, 0) + 1)*1000;
 			var now:Date = new Date();
-			if(now.valueOf() < _liveStallStartTime.valueOf() + liveStallTolerance)
-			{
-				// once we hit the live head, don't signal live stall event for at least a few seconds
-				// in order to reduce the number of false positives. this accounts for the case
-				// where we've caught up with live.
-				return false;
-			}
+            // once we hit the live head, don't signal live stall event for at least a few seconds
+            // in order to reduce the number of false positives. this accounts for the case
+            // where we've caught up with live.
+			return now.valueOf() >= _liveStallStartTime.valueOf() + liveStallTolerance;
 			
-			return true;
+
 		}
 
 		/**
@@ -1177,7 +1163,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 		{
 			onActionNeeded(event);
 			
-			var info:Object = new Object();
+			var info:Object = {};
 			info.code = NetStreamCodes.NETSTREAM_PLAY_TRANSITION_COMPLETE;
 			info.level = "status";
 			info.details = event.url;
@@ -1200,8 +1186,49 @@ package org.denivip.osmf.net.httpstreaming.hls
 			{
 				logger.error("Error load chunk: " + event.url + " skip to next");
 			}
-			if(_source){
-				HTTPHLSStreamSource(_source).loadNextChunk();
+			if(_source)
+			{
+				if(_source is HTTPHLSStreamSource)
+				{	
+					var httpCode:int = parseInt(event.reason);
+					if(event.url.match(/.m3u8/))
+					{
+						if( !isNaN(httpCode) && httpCode >= 400 )
+						{
+							// There's no point in retrying--some 400 level error, which is something bunk client-side
+							dispatchEvent( new NetStatusEvent( NetStatusEvent.NET_STATUS, false, false, {code:event.reason, level:"error", details:event.url}));
+						}
+						else if(_reloadTryCount >= HLSSettings.hlsMaxReloadRetryes)
+						{	
+							dispatchEvent( new NetStatusEvent( NetStatusEvent.NET_STATUS, false, false, {code:NetStreamCodes.NETSTREAM_PLAY_STREAMNOTFOUND, level:"error", details:event.url}) );
+						}
+						else
+						{
+							_reloadTryCount++;
+							var t:Timer = new Timer(HLSSettings.hlsReloadTimeout);
+							t.addEventListener( TimerEvent.TIMER_COMPLETE,
+												function(e:Event):void{
+													HTTPHLSStreamSource(_source).loadNextChunk();
+												}
+											  );
+						}
+					}
+					else
+					{
+						// A .ts segment.  If this is a 404, then let's try loading the next chunk...
+						// jnoring: not sure if this is wise, but it completely fixes streams with missing .ts segments, like:
+						// http://qthttp.apple.com.edgesuite.net/1010qwoeiuryfg/sl.m3u8
+						if( !isNaN(httpCode) && httpCode >= 400 && httpCode != 404 )
+						{
+							// There's no point in retrying--some 400 level error, which is something bunk client-side.
+							dispatchEvent( new NetStatusEvent( NetStatusEvent.NET_STATUS, false, false, {code:event.reason, level:"error", details:event.url}));
+						}
+						else
+						{
+							HTTPHLSStreamSource(_source).loadNextChunk();
+						}
+					}
+				}
 			}
 		}
 		
@@ -1237,6 +1264,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 				logger.debug("Download complete: " + event.url + " (" + event.bytesDownloaded + " bytes)"); 
 			}
 			_bytesLoaded += event.bytesDownloaded;
+			_reloadTryCount = 0; // reset error counter
 		}
 		
 		/**
@@ -1326,11 +1354,10 @@ package org.denivip.osmf.net.httpstreaming.hls
 		private function consumeAllScriptDataTags(timestamp:Number):int
 		{
 			var processed:int = 0;
-			var index:int = 0;
 			var bytes:ByteArray = null;
 			var tag:FLVTagScriptDataObject = null;
 			
-			for (index = 0; index < _insertScriptDataTags.length; index++)
+			for (var index:int = 0; index < _insertScriptDataTags.length; index++)
 			{
 				bytes = new ByteArray();
 				tag = _insertScriptDataTags[index];
@@ -1464,7 +1491,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 			{
 				if (_initialTime < 0)
 				{
-					_initialTime = _dvrInfo != null ? _dvrInfo.startTime : currentTime;
+					_initialTime = _dvrInfo != null ? _dvrInfo.startTime : (_seekTime > 0 ? _playStart : currentTime);
 				}
 				if (_seekTime < 0)
 				{
@@ -1473,7 +1500,13 @@ package org.denivip.osmf.net.httpstreaming.hls
 			}		
 			else // doing enhanced seek
 			{
-				if (currentTime < _enhancedSeekTarget)
+				// If we're seeking backwards, and this timestamp is still greater than the time before seek...drop it 
+				// on the floor.
+				if( _enhancedSeekTarget < this._timeBeforeSeek && currentTime >= this._timeBeforeSeek )
+				{
+					// bzzt.
+				}
+				else if (currentTime < _enhancedSeekTarget)
 				{
 					if (_enhancedSeekTags == null)
 					{
@@ -1519,7 +1552,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 					}
 					if(_initialTime < 0)
 					{
-						_initialTime = currentTime;
+						_initialTime = _seekTime > 0 ? _playStart : currentTime;
 					}
 					
 					if (_enhancedSeekTags != null && _enhancedSeekTags.length > 0)
@@ -1734,7 +1767,6 @@ package org.denivip.osmf.net.httpstreaming.hls
 		 */
 		protected function createSource(resource:URLResource):void
 		{
-			var source:IHTTPStreamSource = null;
 			var streamingResource:StreamingURLResource = resource as StreamingURLResource;
 			if (streamingResource == null || streamingResource.alternativeAudioStreamItems == null || streamingResource.alternativeAudioStreamItems.length == 0)
 			{
@@ -1746,8 +1778,8 @@ package org.denivip.osmf.net.httpstreaming.hls
 			}
 			else
 			{
-				_mixer = new HTTPStreamMixer(this);
-				_mixer.video = new HTTPStreamSource(_factory, _resource, _mixer);
+				_mixer = new HTTPHLSStreamMixer(this);
+				_mixer.video = new HTTPHLSStreamSource(_factory, _resource, _mixer);
 				
 				_source = _mixer;
 				_videoHandler = _mixer.video;
@@ -1767,7 +1799,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 		private var _resource:URLResource = null;
 		private var _factory:HTTPStreamingFactory = null;
 		
-		private var _mixer:HTTPStreamMixer = null;
+		private var _mixer:HTTPHLSStreamMixer = null;
 		private var _videoHandler:IHTTPStreamHandler = null;
 		private var _source:IHTTPStreamSource = null;
 		
@@ -1797,8 +1829,6 @@ package org.denivip.osmf.net.httpstreaming.hls
 		
 		private var _fileTimeAdjustment:Number = 0;	// this is what must be added (IN SECONDS) to the timestamps that come in FLVTags from the file handler to get to the index handler timescale
 		// XXX an event to set the _fileTimestampAdjustment is needed
-
-		private var _mediaFragmentDuration:Number = 0;
 		
 		private var _dvrInfo:DVRInfo = null;
 		
@@ -1810,10 +1840,8 @@ package org.denivip.osmf.net.httpstreaming.hls
 		
 		private var lastTransitionIndex:int = -1;
 		private var lastTransitionStreamURL:String = null;
-		
-		private var lastTime:Number = Number.NaN;
-		private var timeBeforeSeek:Number = Number.NaN;
-		private var seeking:Boolean = false;
+		private var _timeBeforeSeek:Number = Number.NaN;
+		private var _seeking:Boolean = false;
 		private var emptyBufferInterruptionSinceLastQoSUpdate:Boolean = false;
 		
 		private var _bytesLoaded:uint = 0;
@@ -1833,7 +1861,7 @@ package org.denivip.osmf.net.httpstreaming.hls
 		
 		CONFIG::LOGGING
 		{
-			private static const logger:HLSLogger = Log.getLogger("org.denivip.osmf.net.httpstreaming.hls.HTTPHLSNetStream") as HLSLogger;
+			private static const logger:Logger = Log.getLogger("org.denivip.osmf.net.httpstreaming.hls.HTTPHLSNetStream") as Logger;
 			private var previouslyLoggedState:String = null;
 		}
 	}

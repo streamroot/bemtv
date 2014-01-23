@@ -25,7 +25,6 @@ package org.denivip.osmf.net.httpstreaming.dvr
 	
 	import org.denivip.osmf.net.httpstreaming.hls.HTTPHLSNetStream;
 	import org.osmf.events.DVRStreamInfoEvent;
-	import org.osmf.net.httpstreaming.HTTPNetStream;
 	import org.osmf.net.httpstreaming.dvr.DVRInfo;
 	import org.osmf.traits.DVRTrait;
 	

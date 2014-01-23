@@ -24,12 +24,10 @@
  
  package org.denivip.osmf.net.httpstreaming.hls
 {
-	import __AS3__.vec.Vector;
-	
 	import flash.utils.ByteArray;
 	
-	import org.denivip.osmf.logging.HLSLogger;
 	import org.osmf.logging.Log;
+	import org.osmf.logging.Logger;
 	import org.osmf.net.httpstreaming.flv.FLVTagAudio;
 
 	internal class HTTPStreamingMP2PESAudio extends HTTPStreamingMP2PESBase
@@ -38,9 +36,10 @@
 		private var _haveNewTimestamp:Boolean = false;
 		private var _audioTime:Number;
 		private var _audioTimeIncr:Number;
-		private var _profile:int;
-		private var _sampleRateIndex:int;	
-		private var _channelConfig:int;
+		private var _profile:int = -1;
+		private var _sampleRateIndex:int = -1;
+		private var _channelConfig:int = -1;
+        private var _channelConfigTemp:int = -1;
 		private var _frameLength:int;
 		private var _remaining:int;	
 		private var _adtsHeader:ByteArray;
@@ -75,7 +74,9 @@
 				
 				value = packet.readUnsignedInt();
 				packet.position -= 4;
-				if(packet.readUnsignedInt() != 0x1c0)
+				
+				var startCode:uint =  packet.readUnsignedInt();
+				if(startCode < 0x1C0 || startCode > 0x1DF && startCode != 0x1bd)
 				{
 						throw new Error("PES start code not found or not AAC/AVC");
 				}
@@ -83,20 +84,38 @@
 				packet.position += 3;
 				// need PTS only
 				var flags:uint = (packet.readUnsignedByte() & 0xc0) >> 6;
-				if(flags != 0x02 )
+				if(flags != 0x02 && flags != 0x03)
 				{ 
 					throw new Error("No PTS in this audio PES packet");
 				}
 
 				var length:uint = packet.readUnsignedByte();
 
-				var pts:Number = 
-					((packet.readUnsignedByte() & 0x0e) << 29) + 
-					((packet.readUnsignedShort() & 0xfffe) << 14) + 
-					((packet.readUnsignedShort() & 0xfffe) >> 1);
+				var pts:Number =
+					uint((packet.readUnsignedByte() & 0x0e) << 29) +
+					uint((packet.readUnsignedShort() & 0xfffe) << 14) +
+					uint((packet.readUnsignedShort() & 0xfffe) >> 1);
 
-				_timestamp = Math.round(pts/90);
+				var timestamp:Number = Math.round(pts/90);
 				_haveNewTimestamp = true;
+				
+				if(!_timestampReseted) {
+					_offset += timestamp - _prevTimestamp;
+				}
+				
+				if (_isDiscontunity || (!_streamOffsetSet)) {// && _prevTimestamp == 0)) {
+					/*if(timestamp > 0) {
+						_offset += timestamp;
+					}*/
+					_timestamp = _initialTimestamp;
+					_streamOffsetSet = true;
+				}else{
+					_timestamp = _initialTimestamp + _offset;
+				}
+				
+				_prevTimestamp = timestamp;
+				_timestampReseted = false;
+				_isDiscontunity = false;
 				
 				length -= 5;
 				// no comp time for audio
@@ -173,16 +192,30 @@
 					case 2:
 
 						_state = 3;
-						_profile = (value >> 6) & 0x03;
-						_sampleRateIndex = (value >> 2) & 0x0f;
+                        var profile:int = (value >> 6) & 0x03;
+                        if( profile != _profile) {
+                            _profile = profile;
+                            _needACHeader = true;
+                        }
+
+						var sampleRateIndex:int = (value >> 2) & 0x0f;
+                        if( sampleRateIndex != _sampleRateIndex) {
+                            // Change in sample rate.  We need an AC header.
+                            _sampleRateIndex = sampleRateIndex;
+                            _needACHeader = true;
+                        }
 						_audioTimeIncr = getIncrForSRI(_sampleRateIndex);
 						// one private bit
-						_channelConfig = (value & 0x01) << 2; // first bit thereof
+						_channelConfigTemp = (value & 0x01) << 2; // first bit thereof
 						break;
 					case 3:
 
 						_state = 4;
-						_channelConfig += (value >> 6) & 0x03; // rest of channel config
+						_channelConfigTemp += (value >> 6) & 0x03; // rest of channel config
+                        if( _channelConfigTemp != _channelConfig) {
+                            _channelConfig = _channelConfigTemp;
+                            _needACHeader = true;
+                        }
 						// orig/copy bit
 						// home bit
 						// copyright id bit
@@ -215,10 +248,8 @@
 							tag.soundRate = FLVTagAudio.SOUND_RATE_44K; // rather than what is reported
 							tag.soundSize = FLVTagAudio.SOUND_SIZE_16BITS;
 							tag.isAACSequenceHeader = true;
-							
-							var acHeader:ByteArray = new ByteArray();
-						
 							/*
+							var acHeader:ByteArray = new ByteArray();
 							acHeader[0] = (_profile + 1)<<3;
 							acHeader[0] |= _sampleRateIndex >> 1;
 							acHeader[1] = (_sampleRateIndex & 0x01) << 7;
@@ -279,7 +310,7 @@
 		
 		CONFIG::LOGGING
 		{
-			private var logger:HLSLogger = Log.getLogger('org.denivip.osmf.net.httpstreaming.hls.HTTPStreamingMP2PESAudio') as HLSLogger;
+			private var logger:Logger = Log.getLogger('org.denivip.osmf.net.httpstreaming.hls.HTTPStreamingMP2PESAudio') as Logger;
 		}
 	}
 }

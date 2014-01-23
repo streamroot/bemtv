@@ -24,7 +24,6 @@
 
 package org.denivip.osmf.net.httpstreaming.hls
 {
-	import org.denivip.osmf.net.HLSDynamicStreamingResource;
 	import org.osmf.media.MediaResourceBase;
 	import org.osmf.media.URLResource;
 	import org.osmf.net.DynamicStreamingItem;
@@ -68,81 +67,16 @@ package org.denivip.osmf.net.httpstreaming.hls
 				dynamicRes = res as DynamicStreamingResource;
 				
 				for each(var dsi:DynamicStreamingItem in dynamicRes.streamItems){
-					var params:Object = {};
-					
-					if(dsi.width > 0)
-						params.width = dsi.width;
-					
-					if(dsi.height > 0)
-						params.height = dsi.height;
-					
-					streamInfos.push(new HLSStreamInfo(dsi.streamName, dsi.bitrate, params));
+					streamInfos.push(new HLSStreamInfo(dsi.streamName, dsi.bitrate));
 				}
 				
 				baseURL = dynamicRes.host;
 			}else{
-				streamInfos.push(new HLSStreamInfo(res.url, 0, {}));
+				streamInfos.push(new HLSStreamInfo(res.url, 0));
 			}
 			
 			return new HTTPStreamingHLSIndexInfo(baseURL, streamInfos);
-			
-			/*
-			var indexInfo:HTTPStreamingHLSIndexInfo = null;
-			
-			var streamItems:Vector.<DynamicStreamingItem> = res.streamItems;//res.playlist;
-			var streams:Vector.<HTTPStreamingM3U8IndexRateItem> = new Vector.<HTTPStreamingM3U8IndexRateItem>();
-			
-			var rItem:HTTPStreamingM3U8IndexRateItem;
-			var iItem:HTTPStreamingM3U8IndexItem;
-			for each(var item:HLSDynamicStreamingItem in streamItems){
-				rItem = new HTTPStreamingM3U8IndexRateItem(item.bitrate, item.streamName, item.sequenceNumber, item.isLive);
-				
-				for each(var subItem:HLSMediaChunk in item.chunks){
-					iItem = new HTTPStreamingM3U8IndexItem(subItem.duration, subItem.url, subItem.discontinuity);
-					rItem.addIndexItem(iItem);
-				}
-				streams.push(rItem);
-			}
-			
-			//DVR
-			var dvrMetadata:Metadata = res.getMetadataValue(MetadataNamespaces.DVR_METADATA) as Metadata;
-			var dvrInfo:DVRInfo = createDVRInfo(dvrMetadata);
-			
-			indexInfo = new HTTPStreamingHLSIndexInfo(res.url, streams, dvrInfo);
-			
-			return indexInfo;
-			
-			// service part =)
-			function createDVRInfo(metadata:Metadata):DVRInfo{
-				if (metadata == null){
-					return null;
-				}
-				
-				var dvrInfo:DVRInfo = new DVRInfo();
-				dvrInfo.id = "";
-				dvrInfo.beginOffset = NaN;
-				dvrInfo.endOffset = NaN;
-				dvrInfo.windowDuration = NaN;
-				dvrInfo.offline = false;
-				if (metadata.getValue(MetadataNamespaces.HTTP_STREAMING_DVR_ID_KEY) != null){
-					dvrInfo.id = metadata.getValue(MetadataNamespaces.HTTP_STREAMING_DVR_ID_KEY) as String;
-				}
-				if (metadata.getValue(MetadataNamespaces.HTTP_STREAMING_DVR_BEGIN_OFFSET_KEY) != null){
-					dvrInfo.beginOffset = metadata.getValue(MetadataNamespaces.HTTP_STREAMING_DVR_BEGIN_OFFSET_KEY) as uint;
-				}
-				if (metadata.getValue(MetadataNamespaces.HTTP_STREAMING_DVR_END_OFFSET_KEY) != null){
-					dvrInfo.endOffset = metadata.getValue(MetadataNamespaces.HTTP_STREAMING_DVR_END_OFFSET_KEY) as uint;
-				}
-				if (metadata.getValue(MetadataNamespaces.HTTP_STREAMING_DVR_WINDOW_DURATION_KEY) != null){
-					dvrInfo.windowDuration = metadata.getValue(MetadataNamespaces.HTTP_STREAMING_DVR_WINDOW_DURATION_KEY) as int;
-				}
-				if (metadata.getValue(MetadataNamespaces.HTTP_STREAMING_DVR_OFFLINE_KEY) != null){
-					dvrInfo.offline = metadata.getValue(MetadataNamespaces.HTTP_STREAMING_DVR_OFFLINE_KEY) as Boolean;
-				}
-				
-				return dvrInfo;
-			}
-			*/
+		
 		}
 	}
 }

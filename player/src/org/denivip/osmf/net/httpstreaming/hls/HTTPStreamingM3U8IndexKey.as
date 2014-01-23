@@ -24,37 +24,34 @@
  
  package org.denivip.osmf.net.httpstreaming.hls
 {
-	internal class HTTPStreamingM3U8IndexItem
-	{
-		public var startTime:Number;
-		
-		private var _duration:Number;
+	import flash.utils.ByteArray;
+	
+	/**
+	 * Represents an AES-encryption key for M3U8 indexes
+	 */
+	internal class HTTPStreamingM3U8IndexKey
+	{		
+		private var _type:String;
 		private var _url:String;
-		private var _discontinuity:Boolean;
+		private var _key:ByteArray = null;
 		
-		private var _iv:String;
-		private var _key:int;
-		
-		public function HTTPStreamingM3U8IndexItem(duration:Number, url:String, discontinuity:Boolean = false)
+		public function HTTPStreamingM3U8IndexKey(type:String, url:String)
 		{
-			_duration = duration;
+			_type = type;
 			_url = url;
-			_discontinuity = discontinuity;
-			_key = -1;
 		}
 		
-		public function get duration():Number{ return _duration; }
+		public function get type():String{ return _type; }
 		
 		public function get url():String{ return _url; }
 		
-		public function get discontinuity():Boolean{ return _discontinuity; }
+		public function get key():ByteArray{ return _key; }
 		
-		public function get iv():String { return _iv; }
+		public function set key(key:ByteArray):void { _key = key; }
 		
-		public function get key():int { return _key; }
-		
-		public function set iv(iv:String):void { _iv = iv; }
-		
-		public function set key(key:int):void { _key = key; }
+		public function isReady():Boolean {
+			return (_key != null);
+
+		}
 	}
 }

@@ -26,9 +26,6 @@
 {
 	import flash.net.NetConnection;
 	import flash.net.NetStream;
-	
-	import org.denivip.osmf.metadata.HLSMetadata;
-	import org.denivip.osmf.net.HLSDynamicStreamingResource;
 	import org.denivip.osmf.net.httpstreaming.dvr.HTTPHLSStreamingDVRCastDVRTrait;
 	import org.denivip.osmf.net.httpstreaming.dvr.HTTPHLSStreamingDVRCastTimeTrait;
 	import org.osmf.events.DVRStreamInfoEvent;
@@ -36,24 +33,30 @@
 	import org.osmf.media.URLResource;
 	import org.osmf.metadata.Metadata;
 	import org.osmf.metadata.MetadataNamespaces;
+	import org.osmf.net.DynamicStreamingResource;
 	import org.osmf.net.NetStreamLoadTrait;
-	import org.osmf.net.httpstreaming.HTTPNetStream;
+	import org.osmf.net.NetStreamSwitchManagerBase;
+	import org.osmf.net.NetStreamSwitcher;
+	import org.osmf.net.httpstreaming.DefaultHTTPStreamingSwitchManager;
 	import org.osmf.net.httpstreaming.HTTPStreamingNetLoader;
 	import org.osmf.net.httpstreaming.dvr.DVRInfo;
+	import org.osmf.net.metrics.MetricFactory;
+	import org.osmf.net.metrics.MetricRepository;
+	import org.osmf.net.qos.QoSInfoHistory;
+	import org.osmf.net.rules.BufferBandwidthRule;
+	import org.osmf.net.rules.RuleBase;
 	import org.osmf.traits.LoadState;
 	
 	public class HTTPStreamingHLSNetLoader extends HTTPStreamingNetLoader
 	{
 		override public function canHandleResource(resource:MediaResourceBase):Boolean
 		{
-			return resource.getMetadataValue(HLSMetadata.HLS_METADATA) != null;
+			return resource.getMetadataValue("HLS_METADATA") != null;
 		}
 		
 		override protected function createNetStream(connection:NetConnection, resource:URLResource):NetStream
 		{
-			var httpNetStream:HTTPHLSNetStream = new HTTPHLSNetStream(connection, new HTTPStreamingHLSFactory(), resource);
-			return httpNetStream;
-			//return new HTTPNetStream(connection, new HTTPStreamingHLSFactory(), resource);
+			return new HTTPHLSNetStream(connection, new HTTPStreamingHLSFactory(), resource);
 		}
 		
 		override protected function processFinishLoading(loadTrait:NetStreamLoadTrait):void

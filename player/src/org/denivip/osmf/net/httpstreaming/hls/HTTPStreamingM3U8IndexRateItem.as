@@ -30,10 +30,12 @@
 		public var sequenceNumber:int;
 		public var isLive:Boolean;
 		public var targetDuration:Number;
+		public var isParsed:Boolean;
 		
 		private var _bw:Number;
 		private var _url:String;
 		private var _manifest:Vector.<HTTPStreamingM3U8IndexItem>;
+		private var _manifestKeys:Vector.<HTTPStreamingM3U8IndexKey>;
 		private var _totalTime:Number;
 		
 		public function HTTPStreamingM3U8IndexRateItem(
@@ -46,6 +48,7 @@
 			_bw = bw;
 			_url = url;
 			_manifest = new Vector.<HTTPStreamingM3U8IndexItem>;
+			_manifestKeys = new Vector.<HTTPStreamingM3U8IndexKey>;
 			_totalTime = 0;
 			
 			sequenceNumber = seqNum;
@@ -55,12 +58,6 @@
 		public function get bw():Number{ return _bw; }
 		
 		public function get url():String{ return _url; }
-		
-		public function get urlBase():String{ 
-			var offset:int;
-			offset = _url.lastIndexOf("/");
-			return _url.substr(0, offset+1);
-		}
 		
 		public function get totalTime():Number{ return _totalTime; }
 		
@@ -73,6 +70,15 @@
 		public function get manifest():Vector.<HTTPStreamingM3U8IndexItem>
 		{
 			return _manifest;
+		}
+		
+		public function addIndexKey(item:HTTPStreamingM3U8IndexKey):void{
+			_manifestKeys.push(item);
+		}
+		
+		public function get key():Vector.<HTTPStreamingM3U8IndexKey>
+		{
+			return _manifestKeys;
 		}
 	}
 }
