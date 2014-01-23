@@ -1,0 +1,7 @@
+echo "Cloning osmf-hls-plugin patched for BemTV"
+git clone https://github.com/flavioribeiro/osmf-hls-plugin.git
+echo "Moving plugin to right path"
+cp -r osmf-hls-plugin/HLSPlugin/src/* ./player/src/
+echo "Cleaning"
+rm -rf osmf-hls-plugin
+echo "Done."
