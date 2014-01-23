@@ -10,34 +10,31 @@ BemTVConnector.prototype = {
   },
 
   requestResource: function(url) {
-    this.requestFromCDN(url);
-  },
-
-  requestFromCDN: function(url) {
     console.log("Requesting " + url);
-    this.p2prequest = new peer5.Request();
-    this.p2prequest.open("GET", url);
-    this.p2prequest.onload = function(e) {
-      self.readBytes(self, url, e);
+    this.p2p_request = new peer5.Request();
+    this.p2p_request.open("GET", url);
+    this.p2p_request.onload = function(e) {
+      self.readBytes(self, e);
     };
 
-    this.p2prequest.onprogress = function(e) {
+    this.p2p_request.onprogress = function(e) {
       console.log("Bytes from CDN: " + e.loadedHTTP);
       console.log("Bytes from P2P: " + e.loadedP2P);
     }
 
-    this.p2prequest.send();
+    this.p2p_request.send();
   },
 
-  readBytes: function(self, url, e) {
+  readBytes: function(self, e) {
+    // this xhr should be remove when P2PXHR fix currentTarget return
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', e.currentTarget.response, false);
+    xhr.open('GET', e.currentTarget.response, true);
     xhr.overrideMimeType("text/plain; charset=x-user-defined");
+    xhr.onload = function(e) {
+      var res = base64ArrayBuffer(str2ab2(xhr.response, xhr.response.length));
+      self.loadChunk(res);
+    }
     xhr.send();
-
-    var len = parseInt(xhr.getResponseHeader("Content-Length"), 10);
-    var res = base64ArrayBuffer(str2ab2(xhr.response, xhr.response.length));
-    self.loadChunk(res);
   },
 
   loadChunk: function(chunk) {
