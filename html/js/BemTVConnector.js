@@ -18,8 +18,11 @@ BemTVConnector.prototype = {
     };
 
     this.p2p_request.onprogress = function(e) {
-      console.log("Bytes from CDN: " + e.loadedHTTP);
-      console.log("Bytes from P2P: " + e.loadedP2P);
+      var bytesFromCDN = document.getElementById("bytesFromCDN");
+      var bytesFromP2P = document.getElementById("bytesFromP2P");
+
+      bytesFromCDN.innerText = parseInt(bytesFromCDN.innerText) + e.loadedHTTP;
+      bytesFromP2P.innerText = parseInt(bytesFromP2P.innerText) + e.loadedP2P;
     }
 
     this.p2p_request.send();

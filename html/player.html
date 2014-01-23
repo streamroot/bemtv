@@ -1,6 +1,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
     <head>
-        <title>Strobe Media Playback</title>
+        <title>BemTV - Make your online broadcasts as light as a flying bird</title>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
         <script type="text/javascript" src="js/swfobject.js"></script>
         <script type="text/javascript" src="js/ParsedQueryString.js"></script>
@@ -17,13 +17,15 @@
               verbose: true,
               controlBarAutoHide: "false",
               controlBarPosition: "bottom",
-              poster: "http://flavioribeiro.com/bemtv2.png"
+              poster: "http://flavioribeiro.com/tapume.png"
           };
 
           PlayerEmbed(parameterNames, parameters);
         </script>
     </head>
     <body align=center>
+      <span><div id="bytesFromCDN" style="display: inline;">0</div> bytes from CDN</span><br>
+      <span><div id="bytesFromP2P" style="display: inline;">0</div> bytes from P2P</span><br>
       <div id="BemTVplayer">
     </body>
 </html>
