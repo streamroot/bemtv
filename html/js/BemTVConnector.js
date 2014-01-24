@@ -7,11 +7,16 @@ BemTVConnector.version = "1.0";
 BemTVConnector.prototype = {
   _init: function() {
     self = this;
+    this.options = {};
+    if (window.location.hash == "#leech") {
+      console.log("Leech found. Forcing downloadMode to p2p");
+      self.options = {downloadMode: 'p2p'};
+    }
   },
 
   requestResource: function(url) {
     console.log("Requesting " + url);
-    this.p2p_request = new peer5.Request();
+    this.p2p_request = new peer5.Request(this.options);
     this.p2p_request.open("GET", url);
     this.p2p_request.onload = function(e) {
       self.readBytes(self, e);
@@ -21,8 +26,8 @@ BemTVConnector.prototype = {
       var bytesFromCDN = document.getElementById("bytesFromCDN");
       var bytesFromP2P = document.getElementById("bytesFromP2P");
 
-      bytesFromCDN.innerText = parseInt(bytesFromCDN.innerText) + e.loadedHTTP;
-      bytesFromP2P.innerText = parseInt(bytesFromP2P.innerText) + e.loadedP2P;
+      bytesFromCDN.innerText = parseInt(bytesFromCDN.innerText) + (e.loadedHTTP);
+      bytesFromP2P.innerText = parseInt(bytesFromP2P.innerText) + (e.loadedP2P);
     }
 
     this.p2p_request.send();
