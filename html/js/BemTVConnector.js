@@ -7,6 +7,7 @@ BemTVConnector.version = "1.0";
 BemTVConnector.prototype = {
   _init: function() {
     self = this;
+    this.current_url = "";
     this.options = {};
     if (window.location.hash == "#leech") {
       console.log("Leech found. Forcing downloadMode to p2p");
@@ -14,13 +15,33 @@ BemTVConnector.prototype = {
     }
   },
 
+  prefetchNextFiles: function(url) {
+      var number = url.substring(url.lastIndexOf("_")+1, url.length-3);
+      var reqs = 3;
+
+      console.log("Prefetching: " + number);
+      for (var i = 1;i < reqs; i++) {
+        var next_url = url.replace(number, parseInt(number) + i);
+        console.log("Prefetching " + next_url);
+        this.requestFromP2P(next_url);
+      }
+  },
+
   requestResource: function(url) {
+    console.log("Resource requested: " + url);
+    this.current_url = url;
+    this.requestFromP2P(url);
+    this.prefetchNextFiles(url);
+  },
+
+  requestFromP2P: function(url) {
     console.log("Requesting " + url);
     this.p2p_request = new peer5.Request(this.options);
     this.p2p_request.open("GET", url);
     this.p2p_request.onload = function(e) {
-      self.readBytes(self, e);
+      self.readBytes(self, e, url);
     };
+
 
     this.p2p_request.onprogress = function(e) {
       var bytesFromCDN = document.getElementById("bytesFromCDN");
@@ -33,16 +54,19 @@ BemTVConnector.prototype = {
     this.p2p_request.send();
   },
 
-  readBytes: function(self, e) {
+  readBytes: function(self, e, url) {
     // this xhr should be remove when P2PXHR fix currentTarget return
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', e.currentTarget.response, true);
-    xhr.overrideMimeType("text/plain; charset=x-user-defined");
-    xhr.onload = function(e) {
-      var res = base64ArrayBuffer(str2ab2(xhr.response, xhr.response.length));
-      self.loadChunk(res);
+    if (url == self.current_url) {
+      console.log("Current URL downloaded");
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', e.currentTarget.response, true);
+      xhr.overrideMimeType("text/plain; charset=x-user-defined");
+      xhr.onload = function(e) {
+        var res = base64ArrayBuffer(str2ab2(xhr.response, xhr.response.length));
+        self.loadChunk(res);
+      }
+      xhr.send();
     }
-    xhr.send();
   },
 
   loadChunk: function(chunk) {
