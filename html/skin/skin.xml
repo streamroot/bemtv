@@ -7,28 +7,28 @@ More information at rblank.com-->
     <elements basePath="skin/">
 
         <element id="controlBarBackdrop" src="controlBar_center.png"/>
-        <element id="controlBarBackdropLeft" src="controlBar_left.png"/>
-        <element id="controlBarBackdropRight" src="controlBar_right.png"/>
+        <element id="controlBarBackdropLeft" src="controlBar_center.png"/>
+        <element id="controlBarBackdropRight" src="controlBar_center.png"/>
 
         <element id="playButtonNormal" src="play.png"/>
         <element id="playButtonDown" src="play_down.png"/>
         <element id="playButtonOver" src="play_over.png"/>
 
         <element id="pauseButtonNormal" src="pause.png"/>
-        <element id="pauseButtonDown" src="pause_down.png"/>
+        <element id="pauseButtonDown" src="pause.png"/>
         <element id="pauseButtonOver" src="pause_over.png"/>
 
         <element id="volumeButtonNormal" src="volumeButton_3wave.png"/>
-        <element id="volumeButtonDown" src="volumeButton_3wave_down.png"/>
+        <element id="volumeButtonDown" src="volumeButton_3wave.png"/>
         <element id="volumeButtonOver" src="volumeButton_3wave_over.png"/>
         <element id="volumeButtonLowNormal" src="volumeButton_1wave.png"/>
-        <element id="volumeButtonLowDown" src="volumeButton_1wave_down.png"/>
+        <element id="volumeButtonLowDown" src="volumeButton_1wave.png"/>
         <element id="volumeButtonLowOver" src="volumeButton_1wave_over.png"/>
         <element id="volumeButtonMedNormal" src="volumeButton_2wave.png"/>
-        <element id="volumeButtonMedDown" src="volumeButton_2wave_down.png"/>
+        <element id="volumeButtonMedDown" src="volumeButton_2wave.png"/>
         <element id="volumeButtonMedOver" src="volumeButton_2wave_over.png"/>
         <element id="volumeButtonHighNormal" src="volumeButton_3wave.png"/>
-        <element id="volumeButtonHighDown" src="volumeButton_3wave_down.png"/>
+        <element id="volumeButtonHighDown" src="volumeButton_3wave.png"/>
         <element id="volumeButtonHighOver" src="volumeButton_3wave_over.png"/>
 
         <element id="unmuteButtonNormal" src="volumeButton_0wave.png"/>
@@ -36,41 +36,19 @@ More information at rblank.com-->
         <element id="unmuteButtonOver" src="volumeButton_0wave_over.png"/>
 
         <element id="fullScreenEnterButtonNormal" src="fullScreen.png"/>
-        <element id="fullScreenEnterButtonDown" src="fullScreen_down.png"/>
+        <element id="fullScreenEnterButtonDown" src="fullScreen_over.png"/>
         <element id="fullScreenEnterButtonOver" src="fullScreen_over.png"/>
         <element id="fullScreenLeaveButtonNormal" src="fullScreen_exit.png"/>
-        <element id="fullScreenLeaveButtonDown" src="fullScreen_exit_down.png"/>
+        <element id="fullScreenLeaveButtonDown" src="fullScreen_exit_over.png"/>
         <element id="fullScreenLeaveButtonOver" src="fullScreen_exit_over.png"/>
 
-        <element id="previousButtonNormal" src="previous.png" />
-        <element id="previousButtonDown" src="previous_down.png" />
-        <element id="previousButtonOver" src="previous_over.png" />
-        <element id="previousButtonDisabled" src="previous_disabled.png" />
 
-        <element id="nextButtonNormal" src="next.png" />
-        <element id="nextButtonDown" src="next_down.png" />
-        <element id="nextButtonOver" src="next_over.png" />
-        <element id="nextButtonDisabled" src="next_disabled.png" />
-
-        <element id="scrubBarTrack" src="scrubBarTrack.png"/>
-        <element id="scrubBarTrackLeft" src="scrubBarTrack_left.png"/>
-        <element id="scrubBarTrackRight" src="scrubBarTrack_right.png"/>
-        <element id="scrubBarLoadedTrack" src="scrubBarTrack_loaded.png"/>
-        <element id="scrubBarLoadedTrackEnd" src="scrubBarTrack_loaded.png"/>
-        <element id="scrubBarPlayedTrack" src="scrubBarTrack_played.png"/>
-
-	    <element id="scrubBarScrubberNormal" src="scrubBar_scrubber.png"/>
-		<element id="scrubBarScrubberDown" src="scrubBar_scrubber.png"/>
-		<element id="scrubBarScrubberOver" src="scrubBar_scrubber_over.png"/>
-		<element id="scrubBarScrubberDisabled" src="scrubBar_scrubber_disabled.png"/>
-        <element id="scrubBarTimeHint" src="time_hint.png"/>
-
-	    <element id="volumeBarBackdrop" src="volumeBarBackdrop.png"/>
-		<element id="volumeBarTrack" src="volumeBarTrack.png"/>
-		<element id="volumeBarTrackEnd" src=""/>
-		<element id="volumeBarSliderNormal" src="volumeBarSlider.png"/>
-		<element id="volumeBarSliderDown" src="volumeBarSlider.png"/>
-		<element id="volumeBarSliderOver" src="volumeBarSlider_over.png"/>
+	<element id="volumeBarBackdrop" src="volumeBarBackdrop.png"/>
+	<element id="volumeBarTrack" src="volumeBarTrack.png"/>
+	<element id="volumeBarTrackEnd" src=""/>
+	<element id="volumeBarSliderNormal" src="volumeBarSlider.png"/>
+	<element id="volumeBarSliderDown" src="volumeBarSlider.png"/>
+	<element id="volumeBarSliderOver" src="volumeBarSlider_over.png"/>
 
         <element id="playButtonOverlayNormal" src="playButtonOverlay.png"/>
         <element id="playButtonOverlayDown" src="playButtonOverlay_down.png"/>
