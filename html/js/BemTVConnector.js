@@ -7,6 +7,7 @@ BemTVConnector.version = "1.0";
 BemTVConnector.prototype = {
   _init: function() {
     self = this;
+        this.requests = {} // <url, peer5.Request>
     this.current_url = "";
     this.options = {};
     if (window.location.hash == "#leech") {
@@ -19,31 +20,41 @@ BemTVConnector.prototype = {
       var number = url.substring(url.lastIndexOf("_")+1, url.length-3);
       var reqs = 3;
 
-      console.log("Prefetching: " + number);
       for (var i = 1;i < reqs; i++) {
         var next_url = url.replace(number, parseInt(number) + i);
-        console.log("Prefetching " + next_url);
-        this.requestFromP2P(next_url);
+            this.requestURL(next_url, {downloadMode: 'p2p'}); //req in p2p
       }
   },
 
   requestResource: function(url) {
     console.log("Resource requested: " + url);
     this.current_url = url;
-    this.requestFromP2P(url);
+        this.requestURL(url);
     this.prefetchNextFiles(url);
   },
 
-  requestFromP2P: function(url) {
-    console.log("Requesting " + url);
-    this.p2p_request = new peer5.Request(this.options);
-    this.p2p_request.open("GET", url);
-    this.p2p_request.onload = function(e) {
+    requestURL: function(url, options) {
+        if(this.requests[url]) {
+            // stop current request to modify it
+            this.requests[url].abort();
+        }
+
+        if (!options) {
+            console.log("HTTP Request " + url);
+            options = self.options;
+        } else {
+            console.log("P2P Request: " + url);
+        }
+
+
+        this.requests[url] = new peer5.Request(options);
+        this.requests[url].open("GET", url);
+        this.requests[url].onload = function(e) {
       self.readBytes(self, e, url);
     };
 
 
-    this.p2p_request.onprogress = function(e) {
+        this.requests[url].onprogress = function(e) {
       var bytesFromCDN = document.getElementById("bytesFromCDN");
       var bytesFromP2P = document.getElementById("bytesFromP2P");
 
@@ -51,7 +62,7 @@ BemTVConnector.prototype = {
       bytesFromP2P.innerText = parseInt(bytesFromP2P.innerText) + (e.loadedP2P);
     }
 
-    this.p2p_request.send();
+        this.requests[url].send();
   },
 
   readBytes: function(self, e, url) {
@@ -62,15 +73,17 @@ BemTVConnector.prototype = {
       xhr.open('GET', e.currentTarget.response, true);
       xhr.overrideMimeType("text/plain; charset=x-user-defined");
       xhr.onload = function(e) {
+                var t = Date.now();
         var res = base64ArrayBuffer(str2ab2(xhr.response, xhr.response.length));
         self.loadChunk(res);
+                console.log("Loading " + url + ' took ' + (Date.now() - t));
+
       }
       xhr.send();
     }
   },
 
   loadChunk: function(chunk) {
-     console.log("Loading chunk of size " + chunk.length);
      document['BemTVplayer'].resourceLoaded(chunk);
   }
 }
