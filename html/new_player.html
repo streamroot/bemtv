@@ -10,7 +10,7 @@
           window.onload = function() {
             console.log("Starting bemtv");
             var BemTV = require("./BemTV");
-            var bemtvConnector = new BemTV();
+            bemtvConnector = new BemTV();
             var pqs = new ParsedQueryString();
             var parameterNames = pqs.params(false);
             var parameters = {
