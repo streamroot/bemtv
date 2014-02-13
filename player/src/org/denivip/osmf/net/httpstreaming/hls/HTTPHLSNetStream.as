@@ -35,6 +35,8 @@ package org.denivip.osmf.net.httpstreaming.hls
 	import org.denivip.osmf.plugins.HLSSettings;
 	import org.osmf.events.DVRStreamInfoEvent;
 	import org.osmf.events.HTTPStreamingEvent;
+	import org.osmf.events.MediaError;
+	import org.osmf.events.MediaErrorEvent;
 	import org.osmf.events.QoSInfoEvent;
 	import org.osmf.media.MediaResourceBase;
 	import org.osmf.media.URLResource;
@@ -603,8 +605,10 @@ package org.denivip.osmf.net.httpstreaming.hls
 				default:
 					// Some http based error?  If yes, shut'er down.
 					var httpCode:int = parseInt(event.info.code);
-					if( !isNaN(httpCode) && httpCode >= 400 )
+					if( !isNaN(httpCode) && httpCode >= 400 ){
 						close();
+						dispatchEvent(new MediaErrorEvent(MediaErrorEvent.MEDIA_ERROR, true, false, new MediaError(404, "Can't open stream!")));
+					}
 					break;
 			}
 			
