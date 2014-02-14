@@ -68,6 +68,7 @@ BemTV.prototype = {
     console.log("Resource requested by the player: " + url);
     this.currentUrl = url;
     if (this.swarmSize > 0) {
+      console.log("I'm inside a swarm. Requesting from peers.");
       this.bufferedChannel.send(CHUNK_REQ + "|" + url);
       this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
     } else {
