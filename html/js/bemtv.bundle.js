@@ -3,7 +3,7 @@ var quickconnect = require('rtc-quickconnect');
 var buffered = require('rtc-bufferedchannel');
 var freeice = require('freeice');
 
-BEMTV_SERVER = "http://server.bem.tv:8081"
+BEMTV_SERVER = "http://server.bem.tv:8080"
 ICE_SERVERS = freeice();
 CHUNK_REQ = "req"
 CHUNK_OFFER = "offer"
@@ -45,11 +45,12 @@ BemTV.prototype = {
     if (splitted[0] == CHUNK_REQ && splitted[1] in self.chunksCache) {
       console.log(id + " want a chunk that I have, sending it.");
       self.bufferedChannel.send(CHUNK_OFFER + "|" + splitted[1] + "|" + self.chunksCache[splitted[1]]);
+      self.updateBytesSendUsingP2p(self.chunksCache[splitted[1]].length);
 
     } else if (splitted[0] == CHUNK_OFFER && splitted[1] == self.currentUrl) {
       clearTimeout(self.requestTimeout);
       self.sendToPlayer(splitted[2]);
-      self.updateBytesFromP2P(splitted[2].length);
+      self.updateBytesRecvFromP2P(splitted[2].length);
       console.log("P2P HAPPENING! GO GO GO");
     }
   },
@@ -66,17 +67,14 @@ BemTV.prototype = {
   },
 
   requestResource: function(url) {
-    if (url != this.currentUrl) {
-      this.currentUrl = url;
-      if (this.swarmSize > 0) {
-        this.bufferedChannel.send(CHUNK_REQ + "|" + url);
-        this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
-      } else {
-        console.log("No peers available.");
-        this.getFromCDN(url);
-      }
+    this.currentUrl = url;
+    if (this.swarmSize > 0) {
+      console.log("Trying to get from swarm");
+      this.bufferedChannel.send(CHUNK_REQ + "|" + url);
+      this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
     } else {
-      logger.info("Skipping double request resource");
+      console.log("No peers available.");
+      this.getFromCDN(url);
     }
   },
 
@@ -107,9 +105,14 @@ BemTV.prototype = {
     bytesFromCDN.innerText = parseInt(bytesFromCDN.innerText) + (bytes);
   },
 
-  updateBytesFromP2P: function(bytes) {
+  updateBytesRecvFromP2P: function(bytes) {
     var bytesFromP2P = document.getElementById("bytesFromP2P");
     bytesFromP2P.innerText = parseInt(bytesFromP2P.innerText) + (bytes);
+  },
+
+  updateBytesSendUsingP2p: function(bytes) {
+    var bytesToP2P = document.getElementById("bytesToP2P");
+    bytesToP2P.innerText = parseInt(bytesToP2P.innerText) + (bytes);
   },
 
   base64ArrayBuffer: function(arrayBuffer) {
