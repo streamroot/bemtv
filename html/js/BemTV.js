@@ -1,11 +1,9 @@
 var quickconnect = require('rtc-quickconnect');
 var buffered = require('rtc-bufferedchannel');
+var freeice = require('freeice');
 
 BEMTV_SERVER = "http://server.bem.tv:8081"
-ICE_SERVERS = [
-     {url: 'stun:stun.l.google.com:19302'},
-     {url:"turn:numb.viagenie.ca:3478", username: "flavio@bem.tv", credential: "bemtvpublic"}
-]
+ICE_SERVERS = freeice();
 CHUNK_REQ = "req"
 CHUNK_OFFER = "offer"
 P2P_TIMEOUT = 2 // in seconds
@@ -42,33 +40,33 @@ BemTV.prototype = {
 
   onData: function(id, data) {
     splitted = data.split("|");
+    console.log("Msg recv: " + id + " " + splitted[0] + splitted[1]);
     if (splitted[0] == CHUNK_REQ && splitted[1] in self.chunksCache) {
-      console.log(id + " want " + splitted[1] + ", sending it.");
+      console.log(id + " want a chunk that I have, sending it.");
       self.bufferedChannel.send(CHUNK_OFFER + "|" + splitted[1] + "|" + self.chunksCache[splitted[1]]);
 
     } else if (splitted[0] == CHUNK_OFFER && splitted[1] == self.currentUrl) {
-      console.log("P2P HAPPENING! GO GO GO");
       clearTimeout(self.requestTimeout);
       self.sendToPlayer(splitted[2]);
       self.updateBytesFromP2P(splitted[2].length);
+      console.log("P2P HAPPENING! GO GO GO");
     }
   },
 
   onDisconnect: function(id) {
-    console.log("Peer disconnected");
     self.swarmSize -= 1;
+    if (self.swarmSize == 0) {
+      console.log("Empty swarm.");
+    }
   },
 
   onConnect: function(id) {
-    console.log("Peer connected");
     self.swarmSize += 1;
   },
 
   requestResource: function(url) {
-    console.log("Resource requested by the player: " + url);
     this.currentUrl = url;
     if (this.swarmSize > 0) {
-      console.log("I'm inside a swarm. Requesting from peers.");
       this.bufferedChannel.send(CHUNK_REQ + "|" + url);
       this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
     } else {
@@ -78,7 +76,7 @@ BemTV.prototype = {
   },
 
   getFromCDN: function(url) {
-    console.log("Getting from CDN");
+    console.log("Getting from CDN " + url);
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.responseType = 'arraybuffer';
