@@ -23,7 +23,7 @@ BemTV.prototype = {
     this.chunksCache = {};
     this.swarmSize = 0;
     this.bufferedChannel = undefined;
-    this.requestTimeout = undefined
+    this.requestTimeout = undefined;
   },
 
   setupPeerConnection: function() {
@@ -50,6 +50,7 @@ BemTV.prototype = {
       console.log("P2P HAPPENING! GO GO GO");
       clearTimeout(self.requestTimeout);
       self.sendToPlayer(splitted[2]);
+      self.updateBytesFromP2P(splitted[2].length);
     }
   },
 
@@ -70,12 +71,13 @@ BemTV.prototype = {
       this.bufferedChannel.send(CHUNK_REQ + "|" + url);
       this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
     } else {
+      console.log("No peers available.");
       this.getFromCDN(url);
     }
   },
 
   getFromCDN: function(url) {
-    console.log("Request timed out.. getting from CDN :(");
+    console.log("Getting from CDN");
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.responseType = 'arraybuffer';
@@ -86,6 +88,7 @@ BemTV.prototype = {
   readBytes: function(e) {
     var res = self.base64ArrayBuffer(e.currentTarget.response);
     self.sendToPlayer(res);
+    self.updateBytesFromCDN(res.length);
   },
 
   sendToPlayer: function(data) {
@@ -93,6 +96,16 @@ BemTV.prototype = {
     self.chunksCache[self.currentUrl] = data;
     self.currentUrl = undefined;
     bemtvPlayer.resourceLoaded(data);
+  },
+
+  updateBytesFromCDN: function(bytes) {
+    var bytesFromCDN = document.getElementById("bytesFromCDN");
+    bytesFromCDN.innerText = parseInt(bytesFromCDN.innerText) + (bytes);
+  },
+
+  updateBytesFromP2P: function(bytes) {
+    var bytesFromP2P = document.getElementById("bytesFromP2P");
+    bytesFromP2P.innerText = parseInt(bytesFromP2P.innerText) + (bytes);
   },
 
   base64ArrayBuffer: function(arrayBuffer) {

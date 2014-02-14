@@ -3,6 +3,7 @@ bin/
 bin-debug/
 bin-release/
 html/static/StrobeMediaPlayback.swf
+html/js/node_modules/
 
 # Other files and folders
 .settings/
