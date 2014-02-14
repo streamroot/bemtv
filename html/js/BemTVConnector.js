@@ -10,33 +10,54 @@ BemTVConnector.prototype = {
         this.requests = {} // <url, peer5.Request>
     this.current_url = "";
     this.options = {};
+    this.cyclicHTTP = false;
     if (window.location.hash == "#leech") {
       console.log("Leech found. Forcing downloadMode to p2p");
       self.options = {downloadMode: 'p2p'};
     }
+
+    if (window.location.hash == "#http") {
+        console.log("Forcing http (cyclic");
+        self.cyclicHTTP = true;
+    }
+
+
+
+
   },
 
-  prefetchNextFiles: function(url) {
+  prefetchP2P: function(url) {
       var number = url.substring(url.lastIndexOf("_")+1, url.length-3);
       var reqs = 3;
 
       for (var i = 1;i < reqs; i++) {
-        var next_url = url.replace(number, parseInt(number) + i);
-            this.requestURL(next_url, {downloadMode: 'p2p'}); //req in p2p
+          var next_url = url.substring(0, url.lastIndexOf("_")+1)  + (parseInt(number) + i) + '.ts';
+          this.requestURL(next_url, {downloadMode: 'p2p'}); //req in p2p
       }
+  },
+
+  prefetchHTTP: function(url) {
+      var number = url.substring(url.lastIndexOf("_")+1, url.length-3);
+      var next_url = url.substring(0, url.lastIndexOf("_")+1)  + (parseInt(number) + 1) + '.ts';
+      this.requestURL(next_url); //req in http
   },
 
   requestResource: function(url) {
     console.log("Resource requested: " + url);
     this.current_url = url;
         this.requestURL(url);
-    this.prefetchNextFiles(url);
   },
 
     requestURL: function(url, options) {
         if(this.requests[url]) {
             // stop current request to modify it
-            this.requests[url].abort();
+            if (this.requests[url].downloadMode == 2) { //if p2p req, abort
+                console.log('aborting ' + url);
+                this.requests[url].abort();
+            } else {
+                return;
+            }
+
         }
 
         if (!options) {
@@ -50,8 +71,14 @@ BemTVConnector.prototype = {
         this.requests[url] = new peer5.Request(options);
         this.requests[url].open("GET", url);
         this.requests[url].onload = function(e) {
-      self.readBytes(self, e, url);
-    };
+            if (self.cyclicHTTP) self.prefetchHTTP(url);
+            self.readBytes(self, e, url);
+        };
+
+        this.requests[url].onerror = function(e) {
+            console.warn(e);
+            delete self.requests[url];
+        };
 
 
         this.requests[url].onprogress = function(e) {
@@ -67,7 +94,7 @@ BemTVConnector.prototype = {
 
   readBytes: function(self, e, url) {
     // this xhr should be remove when P2PXHR fix currentTarget return
-    if (url == self.current_url) {
+//    if (url == self.current_url) {
       console.log("Current URL downloaded");
       var xhr = new XMLHttpRequest();
       xhr.open('GET', e.currentTarget.response, true);
@@ -77,10 +104,11 @@ BemTVConnector.prototype = {
         var res = base64ArrayBuffer(str2ab2(xhr.response, xhr.response.length));
         self.loadChunk(res);
                 console.log("Loading " + url + ' took ' + (Date.now() - t));
+          self.prefetchP2P(url);
 
       }
       xhr.send();
-    }
+//    }
   },
 
   loadChunk: function(chunk) {
