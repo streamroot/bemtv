@@ -40,7 +40,7 @@ BemTV.prototype = {
 
   onData: function(id, data) {
     splitted = data.split("|");
-    console.log("Msg recv: " + id + " " + splitted[0] + splitted[1]);
+    console.log("Recv from (" + id + ") " + splitted[0] + " -> " + splitted[1]);
     if (splitted[0] == CHUNK_REQ && splitted[1] in self.chunksCache) {
       console.log(id + " want a chunk that I have, sending it.");
       self.bufferedChannel.send(CHUNK_OFFER + "|" + splitted[1] + "|" + self.chunksCache[splitted[1]]);

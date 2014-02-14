@@ -4,10 +4,6 @@ var buffered = require('rtc-bufferedchannel');
 var freeice = require('freeice');
 
 BEMTV_SERVER = "http://server.bem.tv:8081"
-//ICE_SERVERS = [
-//     {url: 'stun:stun.l.google.com:19302'},
-//     {url:"turn:numb.viagenie.ca:3478", username: "flavio@bem.tv", credential: "bemtvpublic"}
-//]
 ICE_SERVERS = freeice();
 CHUNK_REQ = "req"
 CHUNK_OFFER = "offer"
@@ -45,9 +41,9 @@ BemTV.prototype = {
 
   onData: function(id, data) {
     splitted = data.split("|");
-    console.log("Msg recv: " + id + " " + splitted[0] + splitted[1]);
+    console.log("Recv from (" + id + ") " + splitted[0] + " -> " + splitted[1]);
     if (splitted[0] == CHUNK_REQ && splitted[1] in self.chunksCache) {
-      console.log(id + " want a chunk that I have sending it.");
+      console.log(id + " want a chunk that I have, sending it.");
       self.bufferedChannel.send(CHUNK_OFFER + "|" + splitted[1] + "|" + self.chunksCache[splitted[1]]);
 
     } else if (splitted[0] == CHUNK_OFFER && splitted[1] == self.currentUrl) {
