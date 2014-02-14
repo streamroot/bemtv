@@ -66,13 +66,17 @@ BemTV.prototype = {
   },
 
   requestResource: function(url) {
-    this.currentUrl = url;
-    if (this.swarmSize > 0) {
-      this.bufferedChannel.send(CHUNK_REQ + "|" + url);
-      this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
+    if (url != this.currentUrl) {
+      this.currentUrl = url;
+      if (this.swarmSize > 0) {
+        this.bufferedChannel.send(CHUNK_REQ + "|" + url);
+        this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
+      } else {
+        console.log("No peers available.");
+        this.getFromCDN(url);
+      }
     } else {
-      console.log("No peers available.");
-      this.getFromCDN(url);
+      logger.info("Skipping double request resource");
     }
   },
 
