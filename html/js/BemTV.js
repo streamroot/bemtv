@@ -18,6 +18,7 @@ BemTV.version = "1.0";
 BemTV.prototype = {
   _init: function() {
     self = this;
+    this.room = this.discoverMyRoom();
     this.setupPeerConnection();
     this.chunksCache = {};
     this.swarmSize = 0;
@@ -26,8 +27,6 @@ BemTV.prototype = {
   },
 
   setupPeerConnection: function() {
-    this.room = this.discoverMyRoom();
-    this.updateRoomName(this.room);
     this.connection = quickconnect(BEMTV_SERVER, {room: this.room, iceServers: ICE_SERVERS});
     this.dataChannel = this.connection.createDataChannel(this.room);
     this.dataChannel.on(this.room + ":open", this.onOpen);
@@ -37,16 +36,16 @@ BemTV.prototype = {
 
   discoverMyRoom: function() {
     var xhr = new XMLHttpRequest();
+    var room = "bemtv";
     xhr.open('GET', BEMTV_ROOM_DISCOVER_URL, false);
     xhr.send();
     if (xhr.status == 200) {
       res = JSON.parse(xhr.response);
       console.log("Got room name " + res['room'] + " from city " + res['city'] + " and telco " + res['asn']);
-      return res['room'];
-    } else {
-      console.log("Couldn't retrieve room name. Using default.");
-      return "bemtv";
+      room = res['room'];
     }
+    this.updateRoomName(room);
+    return room;
   },
 
   onOpen: function(dc, id) {
