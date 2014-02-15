@@ -9,6 +9,7 @@ ICE_SERVERS = freeice();
 CHUNK_REQ = "req"
 CHUNK_OFFER = "offer"
 P2P_TIMEOUT = 1.2 // in seconds
+MAX_CACHE_SIZE = 4;
 
 var BemTV = function() {
   this._init();
@@ -50,19 +51,35 @@ BemTV.prototype = {
 
   onData: function(id, data) {
     var parsedData = utils.parseData(data);
-    if (parsedData['action'] == CHUNK_REQ && parsedData['resource'] in self.chunksCache) {
-      console.log("Sending chunk " + parsedData['resource'] + " to " + id);
-      var resource = parsedData['resource'];
+    var resource = parsedData['resource'];
+
+    if (self.isReq(parsedData) && resource in self.chunksCache) {
+      console.log("Sending chunk " + resource + " to " + id);
       var offerMessage = utils.createMessage(CHUNK_OFFER, resource, self.chunksCache[resource]);
       self.bufferedChannel.send(offerMessage);
       utils.updateBytesSendUsingP2P(self.chunksCache[resource].length);
 
-    } else if (parsedData['action'] == CHUNK_OFFER && parsedData['resource'] == self.currentUrl) {
+    } else if (self.isOffer(parsedData) && resource == self.currentUrl) {
       clearTimeout(self.requestTimeout);
       self.sendToPlayer(parsedData['chunk']);
       utils.updateBytesRecvFromP2P(parsedData['chunk'].length);
       console.log("Chunk " + parsedData['resource'] + " received from p2p");
+
+    } else if (self.isOffer(parsedData) && !(resource in self.chunksCache) && resource != self.currentUrl) {
+      console.log(resource + " isn't the one that I'm looking for, but I'm going to put on my cache. :-)");
+      self.chunksCache[resource] = parsedData['chunk'];
+
+    } else {
+      console.log("Can't help on " + parsedData['action'] + " for " + resource);
     }
+  },
+
+  isReq: function(parsedData) {
+    return parsedData['action'] == CHUNK_REQ;
+  },
+
+  isOffer: function(parsedData) {
+    return parsedData['action'] == CHUNK_OFFER;
   },
 
   onDisconnect: function(id) {
@@ -90,7 +107,6 @@ BemTV.prototype = {
     } else {
       console.log("Skipping double downloads!");
     }
-
   },
 
   getFromCDN: function(url) {
@@ -109,6 +125,28 @@ BemTV.prototype = {
     self.chunksCache[self.currentUrl] = data;
     self.currentUrl = undefined;
     bemtvPlayer.resourceLoaded(data);
+    self.checkCacheSize();
+  },
+
+  checkCacheSize: function() {
+  // it's time to use underscore.js?
+    console.log("Looking for cache size. ");
+    var size = 0;
+    for (var resource in self.chunksCache) {
+      if (self.chunksCache.hasOwnProperty(resource) && resource != null) {
+        size++;
+      }
+    }
+    if (size > MAX_CACHE_SIZE) {
+      while (size > MAX_CACHE_SIZE) {
+        for (var key in self.chunksCache) {
+          delete self.chunksCache[key];
+          size -= 1;
+          console.log("Cache is too big. Removed " + key);
+          break;
+        }
+      }
+    }
   },
 }
 
