@@ -1,6 +1,7 @@
 var quickconnect = require('rtc-quickconnect');
 var buffered = require('rtc-bufferedchannel');
 var freeice = require('freeice');
+var utils = require('./Utils.js');
 
 BEMTV_ROOM_DISCOVER_URL = "http://server.bem.tv:9000/room"
 BEMTV_SERVER = "http://server.bem.tv:8080"
@@ -40,7 +41,7 @@ BemTV.prototype = {
     xhr.open('GET', BEMTV_ROOM_DISCOVER_URL, false);
     xhr.send();
     if (xhr.status == 200) {
-      res = JSON.parse(xhr.response);
+      var res = JSON.parse(xhr.response);
       console.log("Got room name " + res['room'] + " from city " + res['city'] + " and telco " + res['asn']);
       room = res['room'];
     }
@@ -55,18 +56,19 @@ BemTV.prototype = {
   },
 
   onData: function(id, data) {
-    splitted = data.split("|");
-    console.log("Recv from (" + id + ") " + splitted[0] + " -> " + splitted[1]);
-    if (splitted[0] == CHUNK_REQ && splitted[1] in self.chunksCache) {
-      console.log(id + " want a chunk that I have, sending it.");
-      self.bufferedChannel.send(CHUNK_OFFER + "|" + splitted[1] + "|" + self.chunksCache[splitted[1]]);
-      self.updateBytesSendUsingP2P(self.chunksCache[splitted[1]].length);
+    var parsedData = utils.parseData(data);
+    if (parsedData['action'] == CHUNK_REQ && parsedData['resource'] in self.chunksCache) {
+      console.log("Sending chunk to " + id);
+      resource = parsedData['resource'];
+      var offerMessage = utils.offerMessage(CHUNK_OFFER, resource, self.chunksCache[resource]);
+      self.bufferedChannel.send(offerMessage);
+      self.updateBytesSendUsingP2P(self.chunksCache[resource].length);
 
-    } else if (splitted[0] == CHUNK_OFFER && splitted[1] == self.currentUrl) {
+    } else if (parsedData['action'] == CHUNK_OFFER && parsedData['resource'] == self.currentUrl) {
       clearTimeout(self.requestTimeout);
-      self.sendToPlayer(splitted[2]);
-      self.updateBytesRecvFromP2P(splitted[2].length);
-      console.log("P2P HAPPENING! GO GO GO");
+      self.sendToPlayer(parsedData['chunk']);
+      self.updateBytesRecvFromP2P(parsedData['chunk'].length);
+      console.log("Chunk " + parsedData['resource'] + " received from p2p");
     }
   },
 
