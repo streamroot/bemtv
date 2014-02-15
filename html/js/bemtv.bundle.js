@@ -28,6 +28,7 @@ BemTV.prototype = {
 
   setupPeerConnection: function() {
     this.room = this.discoverMyRoom();
+    this.updateRoomName(this.room);
     this.connection = quickconnect(BEMTV_SERVER, {room: this.room, iceServers: ICE_SERVERS});
     this.dataChannel = this.connection.createDataChannel(this.room);
     this.dataChannel.on(this.room + ":open", this.onOpen);
@@ -73,13 +74,12 @@ BemTV.prototype = {
 
   onDisconnect: function(id) {
     self.swarmSize -= 1;
-    if (self.swarmSize == 0) {
-      console.log("Empty swarm.");
-    }
+    self.updateSwarmSize(self.swarmSize);
   },
 
   onConnect: function(id) {
     self.swarmSize += 1;
+    self.updateSwarmSize(self.swarmSize);
   },
 
   requestResource: function(url) {
@@ -118,17 +118,28 @@ BemTV.prototype = {
 
   updateBytesFromCDN: function(bytes) {
     var bytesFromCDN = document.getElementById("bytesFromCDN");
-    bytesFromCDN.innerText = parseInt(bytesFromCDN.innerText) + (bytes);
+    bytesFromCDN.innerHTML = parseInt(bytesFromCDN.innerHTML) + (bytes);
   },
 
   updateBytesRecvFromP2P: function(bytes) {
     var bytesFromP2P = document.getElementById("bytesFromP2P");
-    bytesFromP2P.innerText = parseInt(bytesFromP2P.innerText) + (bytes);
+    bytesFromP2P.innerHTML = parseInt(bytesFromP2P.innerHTML) + (bytes);
   },
 
   updateBytesSendUsingP2P: function(bytes) {
     var bytesToP2P = document.getElementById("bytesToP2P");
-    bytesToP2P.innerText = parseInt(bytesToP2P.innerText) + (bytes);
+    bytesToP2P.innerHTML = parseInt(bytesToP2P.innerHTML) + (bytes);
+  },
+
+  updateRoomName: function(name) {
+    var roomName = document.getElementById("roomName");
+    roomName.innerHTML = name;
+
+  },
+
+  updateSwarmSize: function(size) {
+    var swarmSize = document.getElementById("swarmSize");
+    swarmSize.innerHTML = size;
   },
 
   base64ArrayBuffer: function(arrayBuffer) {
