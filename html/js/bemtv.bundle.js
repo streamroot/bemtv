@@ -3,6 +3,7 @@ var quickconnect = require('rtc-quickconnect');
 var buffered = require('rtc-bufferedchannel');
 var freeice = require('freeice');
 
+BEMTV_ROOM_DISCOVER_URL = "http://server.bem.tv:9000/room"
 BEMTV_SERVER = "http://server.bem.tv:8080"
 ICE_SERVERS = freeice();
 CHUNK_REQ = "req"
@@ -26,11 +27,26 @@ BemTV.prototype = {
   },
 
   setupPeerConnection: function() {
-    this.connection = quickconnect(BEMTV_SERVER, {room: 'bemtv', iceServers: ICE_SERVERS});
-    this.dataChannel = this.connection.createDataChannel("bemtv");
-    this.dataChannel.on("bemtv:open", this.onOpen);
+    this.room = this.discoverMyRoom();
+    this.connection = quickconnect(BEMTV_SERVER, {room: this.room, iceServers: ICE_SERVERS});
+    this.dataChannel = this.connection.createDataChannel(this.room);
+    this.dataChannel.on(this.room + ":open", this.onOpen);
     this.dataChannel.on("peer:connect", this.onConnect);
     this.dataChannel.on("peer:leave", this.onDisconnect);
+  },
+
+  discoverMyRoom: function() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', BEMTV_ROOM_DISCOVER_URL, false);
+    xhr.send();
+    if (xhr.status == 200) {
+      res = JSON.parse(xhr.response);
+      console.log("Got room name " + res['room'] + " from city " + res['city'] + " and telco " + res['asn']);
+      return res['room'];
+    } else {
+      console.log("Couldn't retrieve room name. Using default.");
+      return "bemtv";
+    }
   },
 
   onOpen: function(dc, id) {
@@ -45,7 +61,7 @@ BemTV.prototype = {
     if (splitted[0] == CHUNK_REQ && splitted[1] in self.chunksCache) {
       console.log(id + " want a chunk that I have, sending it.");
       self.bufferedChannel.send(CHUNK_OFFER + "|" + splitted[1] + "|" + self.chunksCache[splitted[1]]);
-      self.updateBytesSendUsingP2p(self.chunksCache[splitted[1]].length);
+      self.updateBytesSendUsingP2P(self.chunksCache[splitted[1]].length);
 
     } else if (splitted[0] == CHUNK_OFFER && splitted[1] == self.currentUrl) {
       clearTimeout(self.requestTimeout);
@@ -110,7 +126,7 @@ BemTV.prototype = {
     bytesFromP2P.innerText = parseInt(bytesFromP2P.innerText) + (bytes);
   },
 
-  updateBytesSendUsingP2p: function(bytes) {
+  updateBytesSendUsingP2P: function(bytes) {
     var bytesToP2P = document.getElementById("bytesToP2P");
     bytesToP2P.innerText = parseInt(bytesToP2P.innerText) + (bytes);
   },
