@@ -36,15 +36,8 @@ BemTV.prototype = {
   },
 
   discoverMyRoom: function() {
-    var xhr = new XMLHttpRequest();
-    var room = "bemtv";
-    xhr.open('GET', BEMTV_ROOM_DISCOVER_URL, false);
-    xhr.send();
-    if (xhr.status == 200) {
-      var res = JSON.parse(xhr.response);
-      console.log("Got room name " + res['room'] + " from city " + res['city'] + " and telco " + res['asn']);
-      room = res['room'];
-    }
+    var response = utils.request(BEMTV_ROOM_DISCOVER_URL);
+    var room = response? JSON.parse(response)['room']: "bemtv";
     this.updateRoomName(room);
     return room;
   },
@@ -58,9 +51,9 @@ BemTV.prototype = {
   onData: function(id, data) {
     var parsedData = utils.parseData(data);
     if (parsedData['action'] == CHUNK_REQ && parsedData['resource'] in self.chunksCache) {
-      console.log("Sending chunk to " + id);
-      resource = parsedData['resource'];
-      var offerMessage = utils.offerMessage(CHUNK_OFFER, resource, self.chunksCache[resource]);
+      console.log("Sending chunk " + parsedData['resource'] + " to " + id);
+      var resource = parsedData['resource'];
+      var offerMessage = utils.createMessage(CHUNK_OFFER, resource, self.chunksCache[resource]);
       self.bufferedChannel.send(offerMessage);
       self.updateBytesSendUsingP2P(self.chunksCache[resource].length);
 
@@ -86,7 +79,8 @@ BemTV.prototype = {
     this.currentUrl = url;
     if (this.swarmSize > 0) {
       console.log("Trying to get from swarm");
-      this.bufferedChannel.send(CHUNK_REQ + "|" + url);
+      var reqMessage = utils.createMessage(CHUNK_REQ, url);
+      this.bufferedChannel.send(reqMessage);
       this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
     } else {
       console.log("No peers available.");
@@ -96,11 +90,7 @@ BemTV.prototype = {
 
   getFromCDN: function(url) {
     console.log("Getting from CDN " + url);
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'arraybuffer';
-    xhr.onload = this.readBytes;
-    xhr.send();
+    utils.request(url, this.readBytes, "arraybuffer");
   },
 
   readBytes: function(e) {
