@@ -44,7 +44,7 @@ module.exports =  {
     bytesFromP2P.innerHTML = parseInt(bytesFromP2P.innerHTML) + (bytes);
   },
 
-  updateBytesSendUsingP2P: function(bytes) {
+  updateBytesSentUsingP2P: function(bytes) {
     var bytesToP2P = document.getElementById("bytesToP2P");
     bytesToP2P.innerHTML = parseInt(bytesToP2P.innerHTML) + (bytes);
   },

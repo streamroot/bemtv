@@ -57,7 +57,7 @@ BemTV.prototype = {
       console.log("Sending chunk " + resource + " to " + id);
       var offerMessage = utils.createMessage(CHUNK_OFFER, resource, self.chunksCache[resource]);
       self.bufferedChannel.send(offerMessage);
-      utils.updateBytesSendUsingP2P(self.chunksCache[resource].length);
+      utils.updateBytesSentUsingP2P(self.chunksCache[resource].length);
 
     } else if (self.isOffer(parsedData) && resource == self.currentUrl) {
       clearTimeout(self.requestTimeout);
@@ -70,7 +70,7 @@ BemTV.prototype = {
       self.chunksCache[resource] = parsedData['chunk'];
 
     } else {
-      console.log("Can't help on " + parsedData['action'] + " for " + resource);
+      console.log("No action associated to: " + parsedData['action'] + " for " + resource);
     }
   },
 
@@ -95,11 +95,12 @@ BemTV.prototype = {
   requestResource: function(url) {
     if (url != this.currentUrl) {
       this.currentUrl = url;
+      if (this.currentUrl in self.chunksCache) {
+        console.log("Chunk is already on cache, getting from it");
+        this.sendToPlayer(self.chunksCache[url]);
+      }
       if (this.swarmSize > 0) {
-        console.log("Trying to get from swarm");
-        var reqMessage = utils.createMessage(CHUNK_REQ, url);
-        this.bufferedChannel.send(reqMessage);
-        this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
+        this.getFromP2P(url);
       } else {
         console.log("No peers available.");
         this.getFromCDN(url);
@@ -107,6 +108,13 @@ BemTV.prototype = {
     } else {
       console.log("Skipping double downloads!");
     }
+  },
+
+  getFromP2P: function(url) {
+    console.log("Trying to get from swarm " + url);
+    var reqMessage = utils.createMessage(CHUNK_REQ, url);
+    this.bufferedChannel.send(reqMessage);
+    this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
   },
 
   getFromCDN: function(url) {
@@ -130,7 +138,6 @@ BemTV.prototype = {
 
   checkCacheSize: function() {
   // it's time to use underscore.js?
-    console.log("Looking for cache size. ");
     var size = 0;
     for (var resource in self.chunksCache) {
       if (self.chunksCache.hasOwnProperty(resource) && resource != null) {
@@ -140,10 +147,12 @@ BemTV.prototype = {
     if (size > MAX_CACHE_SIZE) {
       while (size > MAX_CACHE_SIZE) {
         for (var key in self.chunksCache) {
-          delete self.chunksCache[key];
-          size -= 1;
-          console.log("Cache is too big. Removed " + key);
-          break;
+          if (key != undefined) {
+            delete self.chunksCache[key];
+            size -= 1;
+            console.log("Cache is too big. Removed " + key);
+            break;
+          }
         }
       }
     }
