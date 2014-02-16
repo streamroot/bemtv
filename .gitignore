@@ -4,6 +4,7 @@ bin-debug/
 bin-release/
 html/static/StrobeMediaPlayback.swf
 html/js/node_modules/
+html/js/*bundle.js
 
 # Other files and folders
 .settings/
