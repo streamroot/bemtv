@@ -21,19 +21,18 @@ BemTV.prototype = {
   _init: function() {
     self = this;
     this.room = this.discoverMyRoom();
-    this.setupPeerConnection();
+    this.setupPeerConnection(this.room);
     this.chunksCache = {};
-    this.swarmSize = 0;
+    this.swarm = {};
     this.bufferedChannel = undefined;
     this.requestTimeout = undefined;
   },
 
-  setupPeerConnection: function() {
-    this.connection = quickconnect(BEMTV_SERVER, {room: this.room, iceServers: ICE_SERVERS});
-    this.dataChannel = this.connection.createDataChannel(this.room);
-    this.dataChannel.on(this.room + ":open", this.onOpen);
-    this.dataChannel.on("peer:connect", this.onConnect);
-    this.dataChannel.on("peer:leave", this.onDisconnect);
+  setupPeerConnection: function(room) {
+    connection = quickconnect(BEMTV_SERVER, {room: room, iceServers: ICE_SERVERS});
+    dataChannel = connection.createDataChannel(room);
+    dataChannel.on(room + ":open", this.onOpen);
+    dataChannel.on("peer:leave",   this.onDisconnect);
   },
 
   discoverMyRoom: function() {
@@ -45,8 +44,9 @@ BemTV.prototype = {
 
   onOpen: function(dc, id) {
     console.log("Peer entered the room: " + id);
-    self.bufferedChannel = buffered(dc);
-    self.bufferedChannel.on('data', function(data) { self.onData(id, data); });
+    self.swarm[id] = buffered(dc);
+    self.swarm[id].on('data', function(data) { self.onData(id, data); });
+    utils.updateSwarmSize(self.swarmSize());
   },
 
   onData: function(id, data) {
@@ -56,7 +56,7 @@ BemTV.prototype = {
     if (self.isReq(parsedData) && resource in self.chunksCache) {
       console.log("Sending chunk " + resource + " to " + id);
       var offerMessage = utils.createMessage(CHUNK_OFFER, resource, self.chunksCache[resource]);
-      self.bufferedChannel.send(offerMessage);
+      self.swarm[id].send(offerMessage);
       utils.updateBytesSentUsingP2P(self.chunksCache[resource].length);
 
     } else if (self.isOffer(parsedData) && resource == self.currentUrl) {
@@ -83,13 +83,8 @@ BemTV.prototype = {
   },
 
   onDisconnect: function(id) {
-    self.swarmSize -= 1;
-    utils.updateSwarmSize(self.swarmSize);
-  },
-
-  onConnect: function(id) {
-    self.swarmSize += 1;
-    utils.updateSwarmSize(self.swarmSize);
+    delete self.swarm[id];
+    utils.updateSwarmSize(self.swarmSize());
   },
 
   requestResource: function(url) {
@@ -99,7 +94,7 @@ BemTV.prototype = {
         console.log("Chunk is already on cache, getting from it");
         this.sendToPlayer(self.chunksCache[url]);
       }
-      if (this.swarmSize > 0) {
+      if (this.swarmSize() > 0) {
         this.getFromP2P(url);
       } else {
         console.log("No peers available.");
@@ -113,7 +108,7 @@ BemTV.prototype = {
   getFromP2P: function(url) {
     console.log("Trying to get from swarm " + url);
     var reqMessage = utils.createMessage(CHUNK_REQ, url);
-    this.bufferedChannel.send(reqMessage);
+    this.broadcast(reqMessage);
     this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
   },
 
@@ -126,6 +121,17 @@ BemTV.prototype = {
     var res = utils.base64ArrayBuffer(e.currentTarget.response);
     self.sendToPlayer(res);
     utils.updateBytesFromCDN(res.length);
+  },
+
+  broadcast: function(msg) {
+    console.log("Broadcasting request to peers");
+    for (id in self.swarm) {
+      self.swarm[id].send(msg);
+    }
+  },
+
+  swarmSize: function() {
+    return Object.keys(self.swarm).length;
   },
 
   sendToPlayer: function(data) {
