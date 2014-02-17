@@ -8,7 +8,7 @@ BEMTV_SERVER = "http://server.bem.tv:8080"
 ICE_SERVERS = freeice();
 CHUNK_REQ = "req"
 CHUNK_OFFER = "offer"
-P2P_TIMEOUT = 1.2 // in seconds
+P2P_TIMEOUT = 1.5 // in seconds
 MAX_CACHE_SIZE = 4;
 
 var BemTV = function() {
@@ -137,24 +137,11 @@ BemTV.prototype = {
   },
 
   checkCacheSize: function() {
-  // it's time to use underscore.js?
-    var size = 0;
-    for (var resource in self.chunksCache) {
-      if (self.chunksCache.hasOwnProperty(resource) && resource != null) {
-        size++;
-      }
-    }
-    if (size > MAX_CACHE_SIZE) {
-      while (size > MAX_CACHE_SIZE) {
-        for (var key in self.chunksCache) {
-          if (key != undefined) {
-            delete self.chunksCache[key];
-            size -= 1;
-            console.log("Cache is too big. Removed " + key);
-            break;
-          }
-        }
-      }
+    var cacheKeys = Object.keys(self.chunksCache);
+    if (cacheKeys.length > MAX_CACHE_SIZE) {
+      var key = self.chunksCache;
+      console.log("Removing from cache: " + cacheKeys[0]);
+      delete self.chunksCache[cacheKeys[0]];
     }
   },
 }
