@@ -8,7 +8,7 @@ BEMTV_SERVER = "http://server.bem.tv:8080"
 ICE_SERVERS = freeice();
 CHUNK_REQ = "req"
 CHUNK_OFFER = "offer"
-P2P_TIMEOUT = 1.5 // in seconds
+P2P_TIMEOUT = 2.5 // in seconds
 MAX_CACHE_SIZE = 4;
 
 var BemTV = function() {
@@ -57,20 +57,13 @@ BemTV.prototype = {
       console.log("Sending chunk " + resource + " to " + id);
       var offerMessage = utils.createMessage(CHUNK_OFFER, resource, self.chunksCache[resource]);
       self.swarm[id].send(offerMessage);
-      utils.updateBytesSentUsingP2P(self.chunksCache[resource].length);
+      utils.incrementCounter("chunksToP2P");
 
     } else if (self.isOffer(parsedData) && resource == self.currentUrl) {
       clearTimeout(self.requestTimeout);
       self.sendToPlayer(parsedData['chunk']);
-      utils.updateBytesRecvFromP2P(parsedData['chunk'].length);
-      console.log("Chunk " + parsedData['resource'] + " received from p2p");
-
-    } else if (self.isOffer(parsedData) && !(resource in self.chunksCache) && resource != self.currentUrl) {
-      console.log(resource + " isn't the one that I'm looking for, but I'm going to put on my cache. :-)");
-      self.chunksCache[resource] = parsedData['chunk'];
-
-    } else {
-      console.log("No action associated to: " + parsedData['action'] + " for " + resource);
+      utils.incrementCounter("chunksFromP2P");
+      console.log("P2P:" + parsedData['resource']);
     }
   },
 
@@ -120,7 +113,7 @@ BemTV.prototype = {
   readBytes: function(e) {
     var res = utils.base64ArrayBuffer(e.currentTarget.response);
     self.sendToPlayer(res);
-    utils.updateBytesFromCDN(res.length);
+    utils.incrementCounter("chunksFromCDN");
   },
 
   broadcast: function(msg) {

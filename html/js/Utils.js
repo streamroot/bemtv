@@ -34,19 +34,9 @@ module.exports =  {
     }
   },
 
-  updateBytesFromCDN: function(bytes) {
-    var bytesFromCDN = document.getElementById("bytesFromCDN");
-    bytesFromCDN.innerHTML = parseInt(bytesFromCDN.innerHTML) + (bytes);
-  },
-
-  updateBytesRecvFromP2P: function(bytes) {
-    var bytesFromP2P = document.getElementById("bytesFromP2P");
-    bytesFromP2P.innerHTML = parseInt(bytesFromP2P.innerHTML) + (bytes);
-  },
-
-  updateBytesSentUsingP2P: function(bytes) {
-    var bytesToP2P = document.getElementById("bytesToP2P");
-    bytesToP2P.innerHTML = parseInt(bytesToP2P.innerHTML) + (bytes);
+  incrementCounter: function(element) {
+    var el = document.getElementById(element);
+    el.innerHTML = parseInt(el.innerHTML) + 1;
   },
 
   updateRoomName: function(name) {
