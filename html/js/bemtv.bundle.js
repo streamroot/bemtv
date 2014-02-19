@@ -4,13 +4,27 @@ var buffered = _dereq_('rtc-bufferedchannel');
 var freeice = _dereq_('freeice');
 var utils = _dereq_('./Utils.js');
 
+/* Configuration */
 BEMTV_ROOM_DISCOVER_URL = "http://server.bem.tv:9000/room"
 BEMTV_SERVER = "http://server.bem.tv:8080"
 ICE_SERVERS = freeice();
-CHUNK_REQ = "req"
-CHUNK_OFFER = "offer"
-P2P_TIMEOUT = 2.5 // in seconds
+DESIRE_TIMEOUT = 1 // in seconds
+REQ_TIMEOUT = 4 // in seconds
 MAX_CACHE_SIZE = 4;
+
+
+/* Header protocol messages */
+CHUNK_REQ = "req"
+CHUNK_DESIRE = "des"
+CHUNK_DESACK = "desack"
+CHUNK_OFFER = "offer"
+
+/* Peer States */
+PEER_IDLE = 0
+PEER_WAITING = 1
+PEER_UPLOADING = 2
+PEER_DOWNLOADING = 3
+PEER_DESIRING = 4
 
 var BemTV = function() {
   this._init();
@@ -27,6 +41,7 @@ BemTV.prototype = {
     this.swarm = {};
     this.bufferedChannel = undefined;
     this.requestTimeout = undefined;
+    this.currentState = PEER_IDLE;
   },
 
   setupPeerConnection: function(room) {
@@ -54,17 +69,37 @@ BemTV.prototype = {
     var parsedData = utils.parseData(data);
     var resource = parsedData['resource'];
 
-    if (self.isReq(parsedData) && resource in self.chunksCache) {
-      console.log("Sending chunk " + resource + " to " + id);
+    if (self.isDesire(parsedData) && resource in self.chunksCache) {
+      console.log("HAVE RESOURCE, SENDING DESACK " + id + ":" + resource);
+      self.currentState = PEER_UPLOADING;
+      var desAckMessage = utils.createMessage(CHUNK_DESACK, resource);
+      self.swarm[id].send(desAckMessage);
+
+    } else if (self.isDesAck(parsedData) && self.currentState == PEER_DESIRING) {
+      console.log("RECEIVED DESACK, SENDING REQ " + id + ":" + resource);
+      clearTimeout(self.requestTimeout);
+      self.currentState = PEER_DOWNLOADING;
+      var reqMessage = utils.createMessage(CHUNK_REQ, resource);
+      self.swarm[id].send(reqMessage);
+      this.requestTimeout = setTimeout(function() { self.getFromCDN(resource); }, REQ_TIMEOUT * 1000);
+
+    } else if (self.isReq(parsedData)) { // covering only the happy path. What happens if chunk is poped from the cache on this negotiation step?
+      console.log("RECEIVED REQ, SENDING CHUNK " + id + ":" + resource);
       var offerMessage = utils.createMessage(CHUNK_OFFER, resource, self.chunksCache[resource]);
       self.swarm[id].send(offerMessage);
       utils.incrementCounter("chunksToP2P");
+      self.currentState = PEER_IDLE;
 
     } else if (self.isOffer(parsedData) && resource == self.currentUrl) {
+      console.log("RECEIVED OFFER, GETTING CHUNK " + id + ":" + resource);
       clearTimeout(self.requestTimeout);
       self.sendToPlayer(parsedData['chunk']);
       utils.incrementCounter("chunksFromP2P");
       console.log("P2P:" + parsedData['resource']);
+      self.currentState = PEER_IDLE;
+
+    } else {
+//      console.log("COMMAND LOST: " + id + ":" + parsedData['action'] + ":" + resource + ", my state is " + self.currentState);
     }
   },
 
@@ -74,6 +109,14 @@ BemTV.prototype = {
 
   isOffer: function(parsedData) {
     return parsedData['action'] == CHUNK_OFFER;
+  },
+
+  isDesire: function(parsedData) {
+    return parsedData['action'] == CHUNK_DESIRE;
+  },
+
+  isDesAck: function(parsedData) {
+    return parsedData['action'] == CHUNK_DESACK;
   },
 
   onDisconnect: function(id) {
@@ -100,15 +143,16 @@ BemTV.prototype = {
   },
 
   getFromP2P: function(url) {
-    console.log("Trying to get from swarm " + url);
-    var reqMessage = utils.createMessage(CHUNK_REQ, url);
-    this.broadcast(reqMessage);
-    this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, P2P_TIMEOUT * 1000);
+    this.currentState = PEER_DESIRING;
+    var desMessage = utils.createMessage(CHUNK_DESIRE, url);
+    this.broadcast(desMessage);
+    this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, DESIRE_TIMEOUT * 1000);
   },
 
   getFromCDN: function(url) {
     console.log("Getting from CDN " + url);
     utils.request(url, this.readBytes, "arraybuffer");
+    this.currentState = PEER_IDLE;
   },
 
   readBytes: function(e) {
@@ -118,7 +162,6 @@ BemTV.prototype = {
   },
 
   broadcast: function(msg) {
-    console.log("Broadcasting request to peers");
     for (id in self.swarm) {
       self.swarm[id].send(msg);
     }
@@ -129,7 +172,7 @@ BemTV.prototype = {
   },
 
   sendToPlayer: function(data) {
-    var bemtvPlayer = document.getElementsByTagName("embed")[0];
+    var bemtvPlayer = document.getElementsByTagName("embed")[0] || document.getElementById("BemTVplayer");;
     self.chunksCache[self.currentUrl] = data;
     self.currentUrl = undefined;
     bemtvPlayer.resourceLoaded(data);
@@ -140,7 +183,6 @@ BemTV.prototype = {
     var cacheKeys = Object.keys(self.chunksCache);
     if (cacheKeys.length > MAX_CACHE_SIZE) {
       var key = self.chunksCache;
-      console.log("Removing from cache: " + cacheKeys[0]);
       delete self.chunksCache[cacheKeys[0]];
     }
   },
