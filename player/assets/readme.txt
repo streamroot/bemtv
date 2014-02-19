@@ -1,1 +1,0 @@
-The symbols library contains graphical assets created using Flash CS5.
