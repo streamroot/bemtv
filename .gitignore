@@ -4,6 +4,7 @@ bin-debug/
 bin-release/
 node_modules/
 *.cache
+Gemfile.lock
 
 # Other files and folders
 .settings/
