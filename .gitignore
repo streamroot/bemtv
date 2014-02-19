@@ -2,9 +2,7 @@
 bin/
 bin-debug/
 bin-release/
-html/static/StrobeMediaPlayback.swf
-html/js/node_modules/
-html/js/*bundle.js
+node_modules/
 *.cache
 
 # Other files and folders

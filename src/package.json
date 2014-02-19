@@ -1,0 +1,22 @@
+{
+  "name": "bemtv",
+  "version": "0.0.1",
+  "description": "A hybrid Peer-to-Peer Model to HTTP Live Streaming (HLS) Content Delivery Networks",
+  "author": "Flávio Ribeiro <email@flavioribeiro.com>",
+  "dependencies": {
+    "rtc-quickconnect": ">= 0.12.0",
+    "rtc-bufferedchannel": ">= 0.4.0",
+    "freeice": ">= 0.2.1"
+  },
+  "keywords": [
+    "webrtc",
+    "hls",
+    "live streaming",
+    "p2p"
+  ],
+  "homepage": "http://bem.tv",
+  "bugs": {
+    "url": "https://github.com/flavioribeiro/bemtv/issues",
+    "email": "flavio@bem.tv"
+  }
+}
