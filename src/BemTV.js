@@ -8,7 +8,7 @@ BEMTV_SERVER = "http://server.bem.tv:8080"
 ICE_SERVERS = freeice();
 CHUNK_REQ = "req"
 CHUNK_OFFER = "offer"
-P2P_TIMEOUT = 2.5 // in seconds
+P2P_TIMEOUT = 2 // in seconds
 MAX_CACHE_SIZE = 4;
 
 var BemTV = function() {
@@ -64,6 +64,8 @@ BemTV.prototype = {
       self.sendToPlayer(parsedData['chunk']);
       utils.incrementCounter("chunksFromP2P");
       console.log("P2P:" + parsedData['resource']);
+    } else {
+      console.log("COMMAND LOST: " + parsedData['action']);
     }
   },
 
@@ -128,7 +130,7 @@ BemTV.prototype = {
   },
 
   sendToPlayer: function(data) {
-    var bemtvPlayer = document.getElementsByTagName("embed")[0];
+    var bemtvPlayer = document.getElementsByTagName("embed")[0] || document.getElementById("BemTVplayer");;
     self.chunksCache[self.currentUrl] = data;
     self.currentUrl = undefined;
     bemtvPlayer.resourceLoaded(data);
