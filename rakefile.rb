@@ -32,12 +32,12 @@ end
 task :build_swf => "HLSPlayer.swf"
 
 task :build_js do
-  sh "browserify -r ./node_modules/bemtv/BemTV.js > ./html/js/bemtv.bundle.js"
+  sh "browserify -s BemTV -r ./src/BemTV.js > ./html/js/bemtv.bundle.js"
 end
 
 task :install_js_deps do
   sh "npm install -g browserify"
-  sh "npm install src/"
+  sh "cd src;npm install rtc-quickconnect rtc-bufferedchannel freeice;cd .."
 end
 
 task :build_all => [:install_js_deps, :build_js, :build_swf]
