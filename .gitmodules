@@ -1,0 +1,3 @@
+[submodule "HLSprovider"]
+	path = HLSprovider
+	url = https://github.com/flavioribeiro/HLSprovider.git

@@ -128,7 +128,7 @@ BemTV.prototype = {
   },
 
   sendToPlayer: function(data) {
-    var bemtvPlayer = document.getElementById('BemTVplayer');
+    var bemtvPlayer = document.getElementsByTagName("embed")[0];
     self.chunksCache[self.currentUrl] = data;
     self.currentUrl = undefined;
     bemtvPlayer.resourceLoaded(data);
