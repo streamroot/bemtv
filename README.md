@@ -3,7 +3,7 @@
 A hybrid Peer-to-Peer Model to HTTP Live Streaming (HLS) Content Delivery Networks
 
 
-## Introdution
+## Introduction
 
 BemTV is an attempt to scale live video streaming using P2P without the need of an external plug-in. It uses the powers of [WebRTC](http://www.webrtc.org/) to build swarms considering peer's geolocation and their internet carriers.
 
