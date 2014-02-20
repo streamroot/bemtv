@@ -16,6 +16,7 @@ def configure_task t
   t.use_network               = false
   t.source_path            << 'HLSprovider/src/'
   t.library_path           << 'HLSprovider/lib/as3crypto.swc'
+  t.library_path           << 'HLSprovider/lib/blooddy_crypto.swc'
   t.static_link_runtime_shared_libraries = true
   t.default_size = '480,270'
   t.default_background_color = "0x000000"
