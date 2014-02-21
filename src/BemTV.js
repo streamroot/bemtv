@@ -7,7 +7,7 @@ var utils = require('./Utils.js');
 BEMTV_ROOM_DISCOVER_URL = "http://server.bem.tv:9000/room"
 BEMTV_SERVER = "http://server.bem.tv:8080"
 ICE_SERVERS = freeice();
-DESIRE_TIMEOUT = 1 // in seconds
+DESIRE_TIMEOUT = 0.7 // in seconds
 REQ_TIMEOUT = 4 // in seconds
 MAX_CACHE_SIZE = 4;
 
@@ -41,6 +41,7 @@ BemTV.prototype = {
     this.bufferedChannel = undefined;
     this.requestTimeout = undefined;
     this.currentState = PEER_IDLE;
+    this.totalDesireSent = 0;
   },
 
   setupPeerConnection: function(room) {
@@ -78,16 +79,18 @@ BemTV.prototype = {
       console.log("RECEIVED DESACK, SENDING REQ " + id + ":" + resource);
       clearTimeout(self.requestTimeout);
       self.currentState = PEER_DOWNLOADING;
+      self.totalDesireSent = 0;
       var reqMessage = utils.createMessage(CHUNK_REQ, resource);
       self.swarm[id].send(reqMessage);
-      this.requestTimeout = setTimeout(function() { self.getFromCDN(resource); }, REQ_TIMEOUT * 1000);
+      this.requestTimeout = setTimeout(function() { self.getFromCDN(resource); }, REQ_TIMEOUT *1000);
 
-    } else if (self.isReq(parsedData)) { // covering only the happy path. What happens if chunk is poped from the cache on this negotiation step?
+    } else if (self.isReq(parsedData)) { // what happens if the chunk is removed from cache on this step?
       console.log("RECEIVED REQ, SENDING CHUNK " + id + ":" + resource);
       var offerMessage = utils.createMessage(CHUNK_OFFER, resource, self.chunksCache[resource]);
       self.swarm[id].send(offerMessage);
       utils.incrementCounter("chunksToP2P");
       self.currentState = PEER_IDLE;
+      self.totalDesireSent = 0;
 
     } else if (self.isOffer(parsedData) && resource == self.currentUrl) {
       console.log("RECEIVED OFFER, GETTING CHUNK " + id + ":" + resource);
@@ -142,10 +145,19 @@ BemTV.prototype = {
   },
 
   getFromP2P: function(url) {
-    this.currentState = PEER_DESIRING;
-    var desMessage = utils.createMessage(CHUNK_DESIRE, url);
-    this.broadcast(desMessage);
-    this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, DESIRE_TIMEOUT * 1000);
+    if (this.totalDesireSent < 2) {
+      console.log("SENDING DESIRE FOR " + url + " attempt: " + this.totalDesireSent);
+      this.currentState = PEER_DESIRING;
+      this.totalDesireSent += 1;
+      var desMessage = utils.createMessage(CHUNK_DESIRE, url);
+      this.broadcast(desMessage);
+      this.requestTimeout = setTimeout(function() { self.getFromP2P(url); }, DESIRE_TIMEOUT * Math.random() * 2000);
+    } else {
+      this.totalDesireSent = 0;
+      console.log("Giving up, let's get from CDN");
+      self.currentState = PEER_DOWNLOADING;
+      self.getFromCDN(url);
+    }
   },
 
   getFromCDN: function(url) {
@@ -171,7 +183,7 @@ BemTV.prototype = {
   },
 
   sendToPlayer: function(data) {
-    var bemtvPlayer = document.getElementsByTagName("embed")[0] || document.getElementById("BemTVplayer");;
+    var bemtvPlayer = document.getElementsByTagName("embed")[0] || document.getElementById("BemTVplayer");
     self.chunksCache[self.currentUrl] = data;
     self.currentUrl = undefined;
     bemtvPlayer.resourceLoaded(data);
