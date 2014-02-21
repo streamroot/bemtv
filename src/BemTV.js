@@ -4,7 +4,7 @@ var freeice = require('freeice');
 var utils = require('./Utils.js');
 
 /* Configuration */
-BEMTV_ROOM_DISCOVER_URL = "http://server.bem.tv:9000/room"
+BEMTV_ROOM_DISCOVER_URL = "http://server.bem.tv/room"
 BEMTV_SERVER = "http://server.bem.tv:8080"
 ICE_SERVERS = freeice();
 DESIRE_TIMEOUT = 0.7 // in seconds
