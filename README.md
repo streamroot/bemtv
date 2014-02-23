@@ -51,16 +51,5 @@ $ rake build_swf
 
 Pull requests are encouraged.
 
-## License
-
-Copyright (C) 2014 Flávio Ribeiro < email at flavioribeiro.com >
-
-BemTV is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-BemTV is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with BemTV. If not, see http://www.gnu.org/licenses/.
-
-All files in BemTV are under GPL unless otherwise noted in file's header. Some files may be sublicensed.
 
 
