@@ -39,7 +39,6 @@ BemTV.prototype = {
     this.setupPeerConnection(this.room);
     this.chunksCache = {};
     this.swarm = {};
-    this.bufferedChannel = undefined;
     this.requestTimeout = undefined;
     this.currentState = PEER_IDLE;
     this.totalDesireSent = 0;
@@ -61,7 +60,7 @@ BemTV.prototype = {
 
   onOpen: function(dc, id) {
     console.log("Peer entered the room: " + id);
-    self.swarm[id] = buffered(dc);
+    self.swarm[id] = buffered(dc, {calcCharSize: false});
     self.swarm[id].on('data', function(data) { self.onData(id, data); });
     utils.updateSwarmSize(self.swarmSize());
   },
@@ -152,7 +151,7 @@ BemTV.prototype = {
       this.totalDesireSent += 1;
       var desMessage = utils.createMessage(CHUNK_DESIRE, url);
       this.broadcast(desMessage);
-      this.requestTimeout = setTimeout(function() { self.getFromP2P(url); }, DESIRE_TIMEOUT * Math.random() * 2000);
+      this.requestTimeout = setTimeout(function() { self.getFromP2P(url); }, DESIRE_TIMEOUT * Math.random() * 1000);
     } else {
       this.totalDesireSent = 0;
       console.log("Giving up, let's get from CDN");
@@ -194,7 +193,6 @@ BemTV.prototype = {
   checkCacheSize: function() {
     var cacheKeys = Object.keys(self.chunksCache);
     if (cacheKeys.length > MAX_CACHE_SIZE) {
-      var key = self.chunksCache;
       delete self.chunksCache[cacheKeys[0]];
     }
   },
