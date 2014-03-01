@@ -7,9 +7,9 @@ var utils = require('./Utils.js');
 BEMTV_ROOM_DISCOVER_URL = "http://server.bem.tv/room"
 BEMTV_SERVER = "http://server.bem.tv:8080"
 ICE_SERVERS = freeice();
-DESIRE_TIMEOUT = 0.7 // in seconds
-REQ_TIMEOUT = 4 // in seconds
-MAX_CACHE_SIZE = 4;
+DESIRE_TIMEOUT = 0.7; // in seconds
+REQ_TIMEOUT = 3; // in seconds
+MAX_CACHE_SIZE = 10;
 
 
 /* Header protocol messages */
@@ -40,7 +40,6 @@ BemTV.prototype = {
     this.swarm = {};
     this.requestTimeout = undefined;
     this.currentState = PEER_IDLE;
-    this.totalDesireSent = 0;
   },
 
   setupPeerConnection: function(room) {
@@ -78,7 +77,6 @@ BemTV.prototype = {
       console.log("RECEIVED DESACK, SENDING REQ " + id + ":" + resource);
       clearTimeout(self.requestTimeout);
       self.currentState = PEER_DOWNLOADING;
-      self.totalDesireSent = 0;
       var reqMessage = utils.createMessage(CHUNK_REQ, resource);
       self.swarm[id].send(reqMessage);
       this.requestTimeout = setTimeout(function() { self.getFromCDN(resource); }, REQ_TIMEOUT *1000);
@@ -89,7 +87,6 @@ BemTV.prototype = {
       self.swarm[id].send(offerMessage);
       utils.incrementCounter("chunksToP2P");
       self.currentState = PEER_IDLE;
-      self.totalDesireSent = 0;
 
     } else if (self.isOffer(parsedData) && resource == self.currentUrl) {
       console.log("RECEIVED OFFER, GETTING CHUNK " + id + ":" + resource);
@@ -98,9 +95,6 @@ BemTV.prototype = {
       utils.incrementCounter("chunksFromP2P");
       console.log("P2P:" + parsedData['resource']);
       self.currentState = PEER_IDLE;
-
-    } else {
-//      console.log("COMMAND LOST: " + id + ":" + parsedData['action'] + ":" + resource + ", my state is " + self.currentState);
     }
   },
 
@@ -128,14 +122,9 @@ BemTV.prototype = {
   requestResource: function(url) {
     if (url != this.currentUrl) {
       this.currentUrl = url;
-      if (this.currentUrl in self.chunksCache) {
-        console.log("Chunk is already on cache, getting from it");
-        this.sendToPlayer(self.chunksCache[url]);
-      }
       if (this.swarmSize() > 0) {
         this.getFromP2P(url);
       } else {
-        console.log("No peers available.");
         this.getFromCDN(url);
       }
     } else {
@@ -144,19 +133,11 @@ BemTV.prototype = {
   },
 
   getFromP2P: function(url) {
-    if (this.totalDesireSent < 2) {
-      console.log("SENDING DESIRE FOR " + url + " attempt: " + this.totalDesireSent);
-      this.currentState = PEER_DESIRING;
-      this.totalDesireSent += 1;
-      var desMessage = utils.createMessage(CHUNK_DESIRE, url);
-      this.broadcast(desMessage);
-      this.requestTimeout = setTimeout(function() { self.getFromP2P(url); }, DESIRE_TIMEOUT * Math.random() * 1000);
-    } else {
-      this.totalDesireSent = 0;
-      console.log("Giving up, let's get from CDN");
-      self.currentState = PEER_DOWNLOADING;
-      self.getFromCDN(url);
-    }
+    console.log("SENDING DESIRE FOR " + url);
+    this.currentState = PEER_DESIRING;
+    var desMessage = utils.createMessage(CHUNK_DESIRE, url);
+    this.broadcast(desMessage);
+    this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, DESIRE_TIMEOUT * 1000);
   },
 
   getFromCDN: function(url) {
