@@ -68,13 +68,11 @@ BemTV.prototype = {
     var resource = parsedData['resource'];
 
     if (self.isDesire(parsedData) && resource in self.chunksCache) {
-      console.log("HAVE RESOURCE, SENDING DESACK " + id + ":" + resource);
       self.currentState = PEER_UPLOADING;
       var desAckMessage = utils.createMessage(CHUNK_DESACK, resource);
       self.swarm[id].send(desAckMessage);
 
     } else if (self.isDesAck(parsedData) && self.currentState == PEER_DESIRING) {
-      console.log("RECEIVED DESACK, SENDING REQ " + id + ":" + resource);
       clearTimeout(self.requestTimeout);
       self.currentState = PEER_DOWNLOADING;
       var reqMessage = utils.createMessage(CHUNK_REQ, resource);
@@ -82,18 +80,15 @@ BemTV.prototype = {
       this.requestTimeout = setTimeout(function() { self.getFromCDN(resource); }, REQ_TIMEOUT *1000);
 
     } else if (self.isReq(parsedData)) { // what happens if the chunk is removed from cache on this step?
-      console.log("RECEIVED REQ, SENDING CHUNK " + id + ":" + resource);
       var offerMessage = utils.createMessage(CHUNK_OFFER, resource, self.chunksCache[resource]);
       self.swarm[id].send(offerMessage);
       utils.incrementCounter("chunksToP2P");
       self.currentState = PEER_IDLE;
 
     } else if (self.isOffer(parsedData) && resource == self.currentUrl) {
-      console.log("RECEIVED OFFER, GETTING CHUNK " + id + ":" + resource);
       clearTimeout(self.requestTimeout);
       self.sendToPlayer(parsedData['chunk']);
       utils.incrementCounter("chunksFromP2P");
-      console.log("P2P:" + parsedData['resource']);
       self.currentState = PEER_IDLE;
     }
   },
@@ -127,13 +122,10 @@ BemTV.prototype = {
       } else {
         this.getFromCDN(url);
       }
-    } else {
-      console.log("Skipping double downloads!");
     }
   },
 
   getFromP2P: function(url) {
-    console.log("SENDING DESIRE FOR " + url);
     this.currentState = PEER_DESIRING;
     var desMessage = utils.createMessage(CHUNK_DESIRE, url);
     this.broadcast(desMessage);
@@ -141,7 +133,6 @@ BemTV.prototype = {
   },
 
   getFromCDN: function(url) {
-    console.log("Getting from CDN " + url);
     utils.request(url, this.readBytes, "arraybuffer");
     this.currentState = PEER_IDLE;
   },
