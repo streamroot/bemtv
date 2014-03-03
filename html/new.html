@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BemTV & HLSprovider</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <script type="text/javascript" src="js/bemtv.bundle.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="http://cdn.oesmith.co.uk/morris-0.4.1.min.js"></script>
+  </head>
+  <body align=center>
+
+    <object codebase="" id="BemTVplayer" width="640" height="360">
+      <param name="movie"  value="static/HLSPlayer.swf?inline=1" />
+      <param name="quality" value="autohigh" />
+      <param name="swliveconnect" value="true" />
+      <param name="allowScriptAccess" value="sameDomain" />
+      <param name="bgcolor" value="#0" />
+      <param name="allowFullScreen" value="true" />
+      <param name="wmode" value="window" />
+    </object>
+<input id="userInput" value="http://cdn.bem.tv/stream/soccer4sec/soccer/playlist.m3u8" size="110"> <button onclick="userSubmit()">LOAD</button><br>
+<table border id="mediaInfo" width="640">
+  <tr>
+    <th colspan="2"><button onclick="play()">Play</button></th>
+    <th colspan="2"><button onclick="stop()">Stop</button></th>
+  </tr>
+</table>
+
+
+<table border id="p2pinfo" width="640">
+  <tr><td>Chunks from CDN</td>
+      <td>Chunks received via P2P</td>
+      <td>Chunks sent via P2P</td>
+      <td>Room Name</td>
+      <td>Swarm Size</td>
+  </tr>
+    <td><div id="chunksFromCDN">0</div></td>
+    <td><div id="chunksFromP2P">0</div></td>
+    <td><div id="chunksToP2P">0</div></td>
+    <td><div id="roomName"></div></td>
+    <td><div id="swarmSize">0</div></td>
+  </tr>
+</table>
+
+<div id="donut-example" style="width: 200px; height: 200px;"></div>
+
+<script type="text/javascript">
+setInterval(function() {Morris.Donut({
+  element: 'donut-example',
+  data: [
+    {label: "Chunks from CDN", value: document.getElementById('chunksFromCDN').innerHTML * 1000},
+    {label: "Chunks from P2P", value: document.getElementById('chunksFromP2P').innerHTML * 1000},
+  ],
+  colors: ["#B8DEEC", "#001CB1"],
+  formatter: function(y, data) { return y/1000 }
+}) }, 3000);
+
+function userSubmit() {
+   load(document.getElementById('userInput').value);
+}
+
+var current_url;
+var player_id = "BemTVplayer";
+
+function loadStream(url) {
+  stop();
+  current_url = url;
+  load(url);
+  document.getElementById('userInput').value = url;
+}
+
+function listStreams(list, container) {
+  for(var i=0; i<list.length; i++) { var entry = document.createElement("li");
+    entry.innerHTML = "<a href='#' onclick='return loadStream(\""+list[i].file+"\")'>"+list[i].title+"</a>";
+    document.getElementById(container).appendChild(entry);
+  }
+  loadStream(list[0].file);
+}
+
+function appendLog(txt)
+{
+  var d = new Date();
+  var msg = '[' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + '] ' + txt;
+  console.log(msg);
+  document.getElementById("videoStatus").innerHTML += msg + "<br />";
+}
+
+function load(url) {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    obj.playerLoad(url);
+    appendLog("load URL " + url);
+    document.getElementById('mediaInfo').rows[2].cells[1].innerHTML =  0;
+    document.getElementById('mediaInfo').rows[2].cells[2].innerHTML =  0;
+    document.getElementById('mediaInfo').rows[2].cells[3].innerHTML =  0;
+    document.getElementById('mediaInfo').rows[2].cells[4].innerHTML =  0;
+    document.getElementById('mediaInfo').rows[2].cells[5].innerHTML =  0;
+    document.getElementById('mediaInfo').rows[2].cells[6].innerHTML =  0;
+    document.getElementById('mediaInfo').rows[2].cells[7].innerHTML =  0;
+  }
+}
+
+function play(url) {
+  if (url && current_url != url) {
+    loadStream(url);
+  }
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    obj.playerPlay();
+    appendLog("start playback");
+  }
+}
+
+function pause() {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    obj.playerPause();
+    appendLog("pause playback");
+  }
+}
+
+function resume() {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    obj.playerResume();
+    appendLog("resume playback");
+  }
+}
+
+function stop() {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    obj.playerStop();
+    appendLog("stopping playback");
+  }
+}
+
+function setlevel(level) {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    obj.playerSetLevel(level);
+    appendLog("force level to :" + level);
+  }
+}
+
+function seek(position) {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    obj.playerSeek(position);
+    appendLog("seek to :"+ position);
+  }
+}
+
+function volume(percent) {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    obj.playerVolume(percent);
+    appendLog("set volume to :"+ percent + "%");
+  }
+}
+
+function getbufferLength() {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    return obj.getbufferLength();
+  }
+}
+
+function getMinBufferLength() {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    return obj.getminBufferLength();
+  }
+}
+
+function setminBufferLength(new_len) {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    obj.playerSetminBufferLength(new_len);
+    appendLog("force min buffer len to :" + new_len);
+  }
+}
+
+function getMaxBufferLength() {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    return obj.getmaxBufferLength();
+  }
+}
+
+function setmaxBufferLength(new_len) {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    obj.playerSetmaxBufferLength(new_len);
+    appendLog("force max buffer len to :" + new_len);
+  }
+}
+
+function toggleDebugLogs() {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    var state = obj.getLogDebug();
+    state = !state;
+    document.getElementById('mediaInfo').rows[2].cells[8].innerHTML =  state;
+    obj.playerSetLogDebug(state);
+    appendLog("toggle debug logs to:" + state);
+  }
+}
+
+function toggleDebug2Logs() {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    var state = obj.getLogDebug2();
+    state = !state;
+    document.getElementById('mediaInfo').rows[2].cells[9].innerHTML =  state;
+    obj.playerSetLogDebug2(state);
+    appendLog("toggle debug2 logs to:" + state);
+  }
+}
+
+function toggleFlushLiveURLCache() {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    var state = obj.getflushLiveURLCache();
+    state = !state;
+    document.getElementById('mediaInfo').rows[2].cells[10].innerHTML =  state;
+    obj.playerSetflushLiveURLCache(state);
+    appendLog("toggle flush live URL cache to:" + state);
+  }
+}
+
+function toggleStartFromLowestLevel() {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    var state = obj.getstartFromLowestLevel();
+    state = !state;
+    document.getElementById('mediaInfo').rows[2].cells[11].innerHTML =  state;
+    obj.playerSetstartFromLowestLevel(state);
+    appendLog("toggle start from lowest level to:" + state);
+  }
+}
+
+function getAudioTrackList() {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    var ret = obj.getAudioTrackList();
+    return ret;
+  }
+}
+
+function setAudioTrack(val) {
+  var obj = getFlashMovieObject(player_id);
+  if(obj != null) {
+    obj.playerSetAudioTrack(val);
+  }
+}
+
+function onHLSReady(message) {
+    listStreams(teststreams,"streamlist");
+    appendLog("onHLSReady()");
+
+    // warn about old swf file
+    var obj = getFlashMovieObject(player_id);
+    if (obj != null) {
+      if (!obj.getPlayerVersion || obj.getPlayerVersion() < 2) {
+        alert('You are using an old swf player file, or perhaps your browser is using a cached version of the swf file.');
+      }
+    }
+}
+
+function onVideoSize(width, height) {
+  appendLog("onVideoSize(), " + width + "x" + height);
+  var obj = getFlashMovieObject(player_id);
+  if (obj != null) {
+    var ratio = width / height;
+    if (height > 720) {
+      height = 720;
+      width = height * ratio;
+    }
+
+    obj.width = width;
+    obj.height = height;
+  }
+}
+
+function onComplete(message) {
+  appendLog("onComplete(), playback completed");
+}
+function onError(message) {
+  appendLog("onError():"+ message);
+}
+
+function onFragment(bandwidth,level,width) {
+  //appendLog("onFragment(): bandwidth:" + bandwidth + " level:" + level + " width:" + width);
+}
+function onManifest(duration) {
+  appendLog("manifest loaded, playlist duration:"+ duration.toFixed(2));
+  document.getElementById('mediaInfo').rows[2].cells[2].innerHTML =  duration.toFixed(2);
+}
+
+function onPosition(position,duration) {
+  document.getElementById('mediaInfo').rows[2].cells[1].innerHTML =  position.toFixed(2);
+  document.getElementById('mediaInfo').rows[2].cells[2].innerHTML =  duration.toFixed(2);
+  document.getElementById('mediaInfo').rows[2].cells[3].innerHTML = getMinBufferLength().toFixed(2);
+  document.getElementById('mediaInfo').rows[2].cells[4].innerHTML =  getbufferLength().toFixed(2);
+  document.getElementById('mediaInfo').rows[2].cells[5].innerHTML =  getMaxBufferLength().toFixed(2);
+}
+
+function onState(newState) {
+  appendLog("switching state to "+ newState);
+  document.getElementById('mediaInfo').rows[2].cells[0].innerHTML =  newState;
+}
+
+function onSwitch(newLevel) {
+  appendLog("switching level to "+ newLevel);
+  document.getElementById('mediaInfo').rows[2].cells[6].innerHTML =  newLevel;
+}
+
+function onAudioTracksListChange(trackList) {
+  // update audio switcher
+  var d = document.getElementById('audioControl');
+  var html = '';
+  appendLog("new track list");
+  for (var t in trackList) {
+    appendLog("    " + trackList[t].title + " [" + trackList[t].id + "]");
+    html += '<button onclick="setAudioTrack(' +t+ ')">' + trackList[t].title + '</button>';
+  }
+  d.innerHTML = html;
+}
+
+function onAudioTrackChange(trackId) {
+  appendLog("switching audio track to "+ trackId);
+  document.getElementById('mediaInfo').rows[2].cells[7].innerHTML = trackId;
+}
+
+function getFlashMovieObject(movieName)
+{
+  if (window.document[movieName])
+  {
+      return window.document[movieName];
+  }
+  if (navigator.appName.indexOf("Microsoft Internet")==-1)
+  {
+    if (document.embeds && document.embeds[movieName])
+      return document.embeds[movieName];
+  }
+  else // if (navigator.appName.indexOf("Microsoft Internet")!=-1)
+  {
+    return document.getElementById(movieName);
+  }
+}
+
+window.onload = function() {
+  bemtvConnector = new BemTV();
+}
+
+</script>
+</body>
+</html>

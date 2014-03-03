@@ -8,9 +8,9 @@ var utils = _dereq_('./Utils.js');
 BEMTV_ROOM_DISCOVER_URL = "http://server.bem.tv/room"
 BEMTV_SERVER = "http://server.bem.tv:8080"
 ICE_SERVERS = freeice();
-DESIRE_TIMEOUT = 0.7 // in seconds
-REQ_TIMEOUT = 4 // in seconds
-MAX_CACHE_SIZE = 4;
+DESIRE_TIMEOUT = 0.7; // in seconds
+REQ_TIMEOUT = 3; // in seconds
+MAX_CACHE_SIZE = 10;
 
 
 /* Header protocol messages */
@@ -41,7 +41,6 @@ BemTV.prototype = {
     this.swarm = {};
     this.requestTimeout = undefined;
     this.currentState = PEER_IDLE;
-    this.totalDesireSent = 0;
   },
 
   setupPeerConnection: function(room) {
@@ -69,7 +68,7 @@ BemTV.prototype = {
     var parsedData = utils.parseData(data);
     var resource = parsedData['resource'];
 
-    if (self.isDesire(parsedData) && resource in self.chunksCache) {
+    if (self.isDesire(parsedData) && resource in self.chunksCache && self.currentState != PEER_UPLOADING) { //one send at a time
       console.log("HAVE RESOURCE, SENDING DESACK " + id + ":" + resource);
       self.currentState = PEER_UPLOADING;
       var desAckMessage = utils.createMessage(CHUNK_DESACK, resource);
@@ -79,7 +78,6 @@ BemTV.prototype = {
       console.log("RECEIVED DESACK, SENDING REQ " + id + ":" + resource);
       clearTimeout(self.requestTimeout);
       self.currentState = PEER_DOWNLOADING;
-      self.totalDesireSent = 0;
       var reqMessage = utils.createMessage(CHUNK_REQ, resource);
       self.swarm[id].send(reqMessage);
       this.requestTimeout = setTimeout(function() { self.getFromCDN(resource); }, REQ_TIMEOUT *1000);
@@ -90,18 +88,13 @@ BemTV.prototype = {
       self.swarm[id].send(offerMessage);
       utils.incrementCounter("chunksToP2P");
       self.currentState = PEER_IDLE;
-      self.totalDesireSent = 0;
 
     } else if (self.isOffer(parsedData) && resource == self.currentUrl) {
       console.log("RECEIVED OFFER, GETTING CHUNK " + id + ":" + resource);
       clearTimeout(self.requestTimeout);
       self.sendToPlayer(parsedData['chunk']);
       utils.incrementCounter("chunksFromP2P");
-      console.log("P2P:" + parsedData['resource']);
       self.currentState = PEER_IDLE;
-
-    } else {
-//      console.log("COMMAND LOST: " + id + ":" + parsedData['action'] + ":" + resource + ", my state is " + self.currentState);
     }
   },
 
@@ -129,39 +122,22 @@ BemTV.prototype = {
   requestResource: function(url) {
     if (url != this.currentUrl) {
       this.currentUrl = url;
-      if (this.currentUrl in self.chunksCache) {
-        console.log("Chunk is already on cache, getting from it");
-        this.sendToPlayer(self.chunksCache[url]);
-      }
       if (this.swarmSize() > 0) {
         this.getFromP2P(url);
       } else {
-        console.log("No peers available.");
         this.getFromCDN(url);
       }
-    } else {
-      console.log("Skipping double downloads!");
     }
   },
 
   getFromP2P: function(url) {
-    if (this.totalDesireSent < 2) {
-      console.log("SENDING DESIRE FOR " + url + " attempt: " + this.totalDesireSent);
-      this.currentState = PEER_DESIRING;
-      this.totalDesireSent += 1;
-      var desMessage = utils.createMessage(CHUNK_DESIRE, url);
-      this.broadcast(desMessage);
-      this.requestTimeout = setTimeout(function() { self.getFromP2P(url); }, DESIRE_TIMEOUT * Math.random() * 1000);
-    } else {
-      this.totalDesireSent = 0;
-      console.log("Giving up, let's get from CDN");
-      self.currentState = PEER_DOWNLOADING;
-      self.getFromCDN(url);
-    }
+    this.currentState = PEER_DESIRING;
+    var desMessage = utils.createMessage(CHUNK_DESIRE, url);
+    this.broadcast(desMessage);
+    this.requestTimeout = setTimeout(function() { self.getFromCDN(url); }, DESIRE_TIMEOUT * 1000);
   },
 
   getFromCDN: function(url) {
-    console.log("Getting from CDN " + url);
     utils.request(url, this.readBytes, "arraybuffer");
     this.currentState = PEER_IDLE;
   },
@@ -478,6 +454,7 @@ module.exports = function(dc, opts) {
   var sendQueue = [];
   var sendTimer = 0;
   var retry = (opts || {}).retry !== false;
+  var calcCharSize = (opts || {}).calcCharSize !== false;
 
   function buildData() {
     var totalByteSize = 0;
@@ -614,7 +591,9 @@ module.exports = function(dc, opts) {
       length = data.length;
       while (ii < length) {
         // calculate the current character size
-        charSize = ~-encodeURI(data.charAt(ii)).split(reByteChar).length;
+        charSize = calcCharSize ?
+          ~-encodeURI(data.charAt(ii)).split(reByteChar).length :
+          1;
 
         // if this will tip us over the limit, copy the chunk
         if (currentSize + charSize >= maxSize) {
@@ -710,7 +689,7 @@ module.exports = function(dc, opts) {
 
   return channel;
 };
-},{"events":49}],6:[function(_dereq_,module,exports){
+},{"events":47}],6:[function(_dereq_,module,exports){
 /* jshint node: true */
 'use strict';
 
@@ -1132,7 +1111,7 @@ module.exports = function(signalhost, opts) {
   // pass the signaller on
   return signaller;
 };
-},{"cog/defaults":7,"cog/extend":8,"events":49,"rtc":43,"rtc-signaller":14}],7:[function(_dereq_,module,exports){
+},{"cog/defaults":7,"cog/extend":8,"events":47,"rtc":41,"rtc-signaller":15}],7:[function(_dereq_,module,exports){
 /* jshint node: true */
 'use strict';
 
@@ -1210,6 +1189,71 @@ module.exports = function(target) {
   return target;
 };
 },{}],9:[function(_dereq_,module,exports){
+/* jshint node: true */
+'use strict';
+
+/**
+  ## cog/jsonparse
+
+  ```js
+  var jsonparse = require('cog/jsonparse');
+  ```
+
+  ### jsonparse(input)
+
+  This function will attempt to automatically detect stringified JSON, and
+  when detected will parse into JSON objects.  The function looks for strings
+  that look and smell like stringified JSON, and if found attempts to
+  `JSON.parse` the input into a valid object.
+
+**/
+module.exports = function(input) {
+  var isString = typeof input == 'string' || (input instanceof String);
+  var reNumeric = /^\-?\d+\.?\d*$/;
+  var shouldParse ;
+  var firstChar;
+  var lastChar;
+
+  if ((! isString) || input.length < 2) {
+    if (isString && reNumeric.test(input)) {
+      return parseFloat(input);
+    }
+
+    return input;
+  }
+
+  // check for true or false
+  if (input === 'true' || input === 'false') {
+    return input === 'true';
+  }
+
+  // check for null
+  if (input === 'null') {
+    return null;
+  }
+
+  // get the first and last characters
+  firstChar = input.charAt(0);
+  lastChar = input.charAt(input.length - 1);
+
+  // determine whether we should JSON.parse the input
+  shouldParse =
+    (firstChar == '{' && lastChar == '}') ||
+    (firstChar == '[' && lastChar == ']');
+
+  if (shouldParse) {
+    try {
+      return JSON.parse(input);
+    }
+    catch (e) {
+      // apparently it wasn't valid json, carry on with regular processing
+    }
+  }
+
+
+  return reNumeric.test(input) ? parseFloat(input) : input;
+};
+},{}],10:[function(_dereq_,module,exports){
 /* jshint node: true */
 'use strict';
 
@@ -1344,7 +1388,7 @@ logger.enable = function() {
 
   return logger;
 };
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 /* jshint node: true */
 /* global window: false */
 /* global navigator: false */
@@ -1431,7 +1475,7 @@ else {
   detect.browser = 'node';
   detect.browserVersion = detect.version = '?'; // TODO: get node version
 }
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 /* jshint node: true */
 'use strict';
 
@@ -1563,7 +1607,7 @@ module.exports = function(signaller) {
     }
   };
 };
-},{"cog/extend":15,"cog/logger":17}],12:[function(_dereq_,module,exports){
+},{"cog/extend":8,"cog/logger":10}],13:[function(_dereq_,module,exports){
 /* jshint node: true */
 'use strict';
 
@@ -1578,7 +1622,7 @@ module.exports = function(signaller) {
     leave: _dereq_('./leave')(signaller)
   };
 };
-},{"./announce":11,"./leave":13}],13:[function(_dereq_,module,exports){
+},{"./announce":12,"./leave":14}],14:[function(_dereq_,module,exports){
 /* jshint node: true */
 'use strict';
 
@@ -1620,7 +1664,7 @@ module.exports = function(signaller) {
     signaller.emit('peer:leave', data.id, peer);
   };
 };
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 /* jshint node: true */
 'use strict';
 
@@ -1634,7 +1678,7 @@ var FastMap = _dereq_('collections/fast-map');
 // initialise signaller metadata so we don't have to include the package.json
 // TODO: make this checkable with some kind of prepublish script
 var metadata = {
-  version: '0.18.2'
+  version: '0.18.3'
 };
 
 /**
@@ -2036,76 +2080,7 @@ var sig = module.exports = function(messenger, opts) {
 };
 
 sig.loadPrimus = _dereq_('./primus-loader');
-},{"./primus-loader":38,"./processor":39,"cog/extend":15,"cog/logger":17,"collections/fast-map":19,"events":49,"rtc-core/detect":10,"uuid":37}],15:[function(_dereq_,module,exports){
-module.exports=_dereq_(8)
-},{}],16:[function(_dereq_,module,exports){
-/* jshint node: true */
-'use strict';
-
-/**
-  ## cog/jsonparse
-
-  ```js
-  var jsonparse = require('cog/jsonparse');
-  ```
-
-  ### jsonparse(input)
-
-  This function will attempt to automatically detect stringified JSON, and
-  when detected will parse into JSON objects.  The function looks for strings
-  that look and smell like stringified JSON, and if found attempts to
-  `JSON.parse` the input into a valid object.
-
-**/
-module.exports = function(input) {
-  var isString = typeof input == 'string' || (input instanceof String);
-  var reNumeric = /^\-?\d+\.?\d*$/;
-  var shouldParse ;
-  var firstChar;
-  var lastChar;
-
-  if ((! isString) || input.length < 2) {
-    if (isString && reNumeric.test(input)) {
-      return parseFloat(input);
-    }
-
-    return input;
-  }
-
-  // check for true or false
-  if (input === 'true' || input === 'false') {
-    return input === 'true';
-  }
-
-  // check for null
-  if (input === 'null') {
-    return null;
-  }
-
-  // get the first and last characters
-  firstChar = input.charAt(0);
-  lastChar = input.charAt(input.length - 1);
-
-  // determine whether we should JSON.parse the input
-  shouldParse =
-    (firstChar == '{' && lastChar == '}') ||
-    (firstChar == '[' && lastChar == ']');
-
-  if (shouldParse) {
-    try {
-      return JSON.parse(input);
-    }
-    catch (e) {
-      // apparently it wasn't valid json, carry on with regular processing
-    }
-  }
-
-
-  return reNumeric.test(input) ? parseFloat(input) : input;
-};
-},{}],17:[function(_dereq_,module,exports){
-module.exports=_dereq_(9)
-},{}],18:[function(_dereq_,module,exports){
+},{"./primus-loader":36,"./processor":37,"cog/extend":8,"cog/logger":10,"collections/fast-map":17,"events":47,"rtc-core/detect":11,"uuid":35}],16:[function(_dereq_,module,exports){
 "use strict";
 
 var Shim = _dereq_("./shim");
@@ -2249,7 +2224,7 @@ Dict.prototype.one = function () {
 };
 
 
-},{"./generic-collection":21,"./generic-map":22,"./listen/property-changes":27,"./shim":34}],19:[function(_dereq_,module,exports){
+},{"./generic-collection":19,"./generic-map":20,"./listen/property-changes":25,"./shim":32}],17:[function(_dereq_,module,exports){
 "use strict";
 
 var Shim = _dereq_("./shim");
@@ -2308,7 +2283,7 @@ FastMap.prototype.stringify = function (item, leader) {
 }
 
 
-},{"./fast-set":20,"./generic-collection":21,"./generic-map":22,"./listen/property-changes":27,"./shim":34}],20:[function(_dereq_,module,exports){
+},{"./fast-set":18,"./generic-collection":19,"./generic-map":20,"./listen/property-changes":25,"./shim":32}],18:[function(_dereq_,module,exports){
 "use strict";
 
 var Shim = _dereq_("./shim");
@@ -2361,7 +2336,10 @@ FastSet.prototype.has = function (value) {
     return this.buckets.get(hash).has(value);
 };
 
-FastSet.prototype.get = function (value) {
+FastSet.prototype.get = function (value, equals) {
+    if (equals) {
+        throw new Error("FastSet#get does not support second argument: equals");
+    }
     var hash = this.contentHash(value);
     var buckets = this.buckets;
     if (buckets.has(hash)) {
@@ -2371,7 +2349,10 @@ FastSet.prototype.get = function (value) {
     }
 };
 
-FastSet.prototype['delete'] = function (value) {
+FastSet.prototype["delete"] = function (value, equals) {
+    if (equals) {
+        throw new Error("FastSet#delete does not support second argument: equals");
+    }
     var hash = this.contentHash(value);
     var buckets = this.buckets;
     if (buckets.has(hash)) {
@@ -2493,7 +2474,7 @@ FastSet.prototype.logNode = function (node, write) {
 };
 
 
-},{"./dict":18,"./generic-collection":21,"./generic-set":24,"./list":25,"./listen/property-changes":27,"./shim":34,"./tree-log":35}],21:[function(_dereq_,module,exports){
+},{"./dict":16,"./generic-collection":19,"./generic-set":22,"./list":23,"./listen/property-changes":25,"./shim":32,"./tree-log":33}],19:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = GenericCollection;
@@ -2756,7 +2737,7 @@ GenericCollection.prototype.iterator = function () {
 _dereq_("./shim-array");
 
 
-},{"./shim-array":30}],22:[function(_dereq_,module,exports){
+},{"./shim-array":28}],20:[function(_dereq_,module,exports){
 "use strict";
 
 var Object = _dereq_("./shim-object");
@@ -2916,7 +2897,7 @@ GenericMap.prototype.equals = function (that, equals) {
     equals = equals || Object.equals;
     if (this === that) {
         return true;
-    } else if (Object.can(that, "every")) {
+    } else if (that && typeof that.every === "function") {
         return that.length === this.length && that.every(function (value, key) {
             return equals(this.get(key), value);
         }, this);
@@ -2944,7 +2925,7 @@ Item.prototype.compare = function (that) {
 };
 
 
-},{"./listen/map-changes":26,"./listen/property-changes":27,"./shim-object":32}],23:[function(_dereq_,module,exports){
+},{"./listen/map-changes":24,"./listen/property-changes":25,"./shim-object":30}],21:[function(_dereq_,module,exports){
 
 var Object = _dereq_("./shim-object");
 
@@ -3001,12 +2982,14 @@ GenericOrder.prototype.compare = function (that, compare) {
 };
 
 
-},{"./shim-object":32}],24:[function(_dereq_,module,exports){
+},{"./shim-object":30}],22:[function(_dereq_,module,exports){
 
 module.exports = GenericSet;
 function GenericSet() {
     throw new Error("Can't construct. GenericSet is a mixin.");
 }
+
+GenericSet.prototype.isSet = true;
 
 GenericSet.prototype.union = function (that) {
     var union =  this.constructClone(this);
@@ -3035,7 +3018,7 @@ GenericSet.prototype.symmetricDifference = function (that) {
 GenericSet.prototype.equals = function (that, equals) {
     var self = this;
     return (
-        Object.can(that, "reduce") &&
+        that && typeof that.reduce === "function" &&
         this.length === that.length &&
         that.reduce(function (equal, value) {
             return equal && self.has(value, equals);
@@ -3062,7 +3045,7 @@ GenericSet.prototype.toggle = function (value) {
 };
 
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = List;
@@ -3097,10 +3080,10 @@ List.prototype.constructClone = function (values) {
     return new this.constructor(values, this.contentEquals, this.getDefault);
 };
 
-List.prototype.find = function (value, equals) {
+List.prototype.find = function (value, equals, index) {
     equals = equals || this.contentEquals;
     var head = this.head;
-    var at = head.next;
+    var at = this.scan(index, head.next);
     while (at !== head) {
         if (equals(at.value, value)) {
             return at;
@@ -3109,10 +3092,10 @@ List.prototype.find = function (value, equals) {
     }
 };
 
-List.prototype.findLast = function (value, equals) {
+List.prototype.findLast = function (value, equals, index) {
     equals = equals || this.contentEquals;
     var head = this.head;
-    var at = head.prev;
+    var at = this.scan(index, head.prev);
     while (at !== head) {
         if (equals(at.value, value)) {
             return at;
@@ -3279,6 +3262,14 @@ List.prototype.poke = function (value) {
 List.prototype.one = function () {
     return this.peek();
 };
+
+// TODO
+// List.prototype.indexOf = function (value) {
+// };
+
+// TODO
+// List.prototype.lastIndexOf = function (value) {
+// };
 
 // an internal utility for coercing index offsets to nodes
 List.prototype.scan = function (at, fallback) {
@@ -3499,7 +3490,7 @@ Node.prototype.addAfter = function (node) {
 };
 
 
-},{"./generic-collection":21,"./generic-order":23,"./listen/property-changes":27,"./listen/range-changes":28,"./shim":34}],26:[function(_dereq_,module,exports){
+},{"./generic-collection":19,"./generic-order":21,"./listen/property-changes":25,"./listen/range-changes":26,"./shim":32}],24:[function(_dereq_,module,exports){
 "use strict";
 
 var WeakMap = _dereq_("weak-map");
@@ -3589,7 +3580,7 @@ MapChanges.prototype.removeMapChangeListener = function (listener, token, before
 
     var node = listeners.findLast(listener);
     if (!node) {
-        throw new Error("Can't remove listener: does not exist.");
+        throw new Error("Can't remove map change listener: does not exist: token " + JSON.stringify(token));
     }
     node["delete"]();
 };
@@ -3648,7 +3639,7 @@ MapChanges.prototype.dispatchBeforeMapChange = function (key, value) {
 };
 
 
-},{"../dict":18,"../list":25,"weak-map":29}],27:[function(_dereq_,module,exports){
+},{"../dict":16,"../list":23,"weak-map":27}],25:[function(_dereq_,module,exports){
 /*
     Based in part on observable arrays from Motorola Mobility’s Montage
     Copyright (c) 2012, Motorola Mobility LLC. All Rights Reserved.
@@ -3780,13 +3771,9 @@ PropertyChanges.prototype.removeOwnPropertyChangeListener = function (key, liste
 
     var index = listeners.lastIndexOf(listener);
     if (index === -1) {
-        throw new Error("Can't remove listener: does not exist.");
+        throw new Error("Can't remove property change listener: does not exist: property name" + JSON.stringify(key));
     }
     listeners.splice(index, 1);
-
-    if (descriptor.changeListeners.length + descriptor.willChangeListeners.length === 0) {
-        PropertyChanges.makePropertyUnobservable(this, key);
-    }
 };
 
 PropertyChanges.prototype.removeBeforeOwnPropertyChangeListener = function (key, listener) {
@@ -3816,7 +3803,10 @@ PropertyChanges.prototype.dispatchOwnPropertyChange = function (key, value, befo
 
     try {
         // dispatch to each listener
-        listeners.forEach(function (listener) {
+        listeners.slice().forEach(function (listener) {
+            if (listeners.indexOf(listener) < 0) {
+                return;
+            }
             var thisp = listener;
             listener = (
                 listener[specificHandlerName] ||
@@ -4098,7 +4088,7 @@ PropertyChanges.makePropertyUnobservable = function (object, key) {
 };
 
 
-},{"../shim":34,"weak-map":29}],28:[function(_dereq_,module,exports){
+},{"../shim":32,"weak-map":27}],26:[function(_dereq_,module,exports){
 "use strict";
 
 var WeakMap = _dereq_("weak-map");
@@ -4178,7 +4168,7 @@ RangeChanges.prototype.removeRangeChangeListener = function (listener, token, be
 
     var index = listeners.lastIndexOf(listener);
     if (index === -1) {
-        throw new Error("Can't remove listener: does not exist.");
+        throw new Error("Can't remove range change listener: does not exist: token " + JSON.stringify(token));
     }
     listeners.splice(index, 1);
 };
@@ -4211,7 +4201,10 @@ RangeChanges.prototype.dispatchRangeChange = function (plus, minus, index, befor
 
         // dispatch each listener
         try {
-            listeners.forEach(function (listener) {
+            listeners.slice().forEach(function (listener) {
+                if (listeners.indexOf(listener) < 0) {
+                    return;
+                }
                 if (listener[tokenName]) {
                     listener[tokenName](plus, minus, index, this, beforeChange);
                 } else if (listener.call) {
@@ -4239,7 +4232,7 @@ RangeChanges.prototype.dispatchBeforeRangeChange = function (plus, minus, index)
 };
 
 
-},{"../dict":18,"weak-map":29}],29:[function(_dereq_,module,exports){
+},{"../dict":16,"weak-map":27}],27:[function(_dereq_,module,exports){
 // Copyright (C) 2011 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -4831,7 +4824,7 @@ RangeChanges.prototype.dispatchBeforeRangeChange = function (plus, minus, index)
   }
 })();
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 "use strict";
 
 /*
@@ -4847,6 +4840,9 @@ var GenericOrder = _dereq_("./generic-order");
 var WeakMap = _dereq_("weak-map");
 
 module.exports = Array;
+
+var array_splice = Array.prototype.splice;
+var array_slice = Array.prototype.slice;
 
 Array.empty = [];
 
@@ -4971,15 +4967,70 @@ define("findLast", function (value, equals) {
     return -1;
 });
 
-define("swap", function (index, length, plus) {
-    var args = Array.prototype.slice.call(arguments, 0, 2);
-    if (plus) {
+define("swap", function (start, length, plus) {
+    var args, plusLength, i, j, returnValue;
+    if (typeof plus !== "undefined") {
+        args = [start, length];
         if (!Array.isArray(plus)) {
-            plus = Array.prototype.slice.call(plus);
+            plus = array_slice.call(plus);
         }
-        args.push.apply(args, plus);
+        i = 0;
+        plusLength = plus.length;
+        // 1000 is a magic number, presumed to be smaller than the remaining
+        // stack length. For swaps this small, we take the fast path and just
+        // use the underlying Array splice. We could measure the exact size of
+        // the remaining stack using a try/catch around an unbounded recursive
+        // function, but this would defeat the purpose of short-circuiting in
+        // the common case.
+        if (plusLength < 1000) {
+            for (i; i < plusLength; i++) {
+                args[i+2] = plus[i];
+            }
+            return array_splice.apply(this, args);
+        } else {
+            // Avoid maximum call stack error.
+            // First delete the desired entries.
+            returnValue = array_splice.apply(this, args);
+            // Second batch in 1000s.
+            for (i; i < plusLength;) {
+                args = [start+i, 0];
+                for (j = 2; j < 1002 && i < plusLength; j++, i++) {
+                    args[j] = plus[i];
+                }
+                array_splice.apply(this, args);
+            }
+            return returnValue;
+        }
+    // using call rather than apply to cut down on transient objects
+    } else if (typeof length !== "undefined") {
+        return array_splice.call(this, start, length);
+    }  else if (typeof start !== "undefined") {
+        return array_splice.call(this, start);
+    } else {
+        return [];
     }
-    return this.splice.apply(this, args);
+});
+
+define("peek", function () {
+    return this[0];
+});
+
+define("poke", function (value) {
+    if (this.length > 0) {
+        this[0] = value;
+    }
+});
+
+define("peekBack", function () {
+    if (this.length > 0) {
+        return this[this.length - 1];
+    }
+});
+
+define("pokeBack", function (value) {
+    if (this.length > 0) {
+        this[this.length - 1] = value;
+    }
 });
 
 define("one", function () {
@@ -5071,17 +5122,19 @@ define("equals", function (that, equals) {
 });
 
 define("clone", function (depth, memo) {
-    if (depth === undefined) {
+    if (depth == null) {
         depth = Infinity;
     } else if (depth === 0) {
         return this;
     }
     memo = memo || new WeakMap();
-    var clone = [];
+    if (memo.has(this)) {
+        return memo.get(this);
+    }
+    var clone = new Array(this.length);
+    memo.set(this, clone);
     for (var i in this) {
-        if (Object.owns(this, i)) {
-            clone[i] = Object.clone(this[i], depth - 1, memo);
-        }
+        clone[i] = Object.clone(this[i], depth - 1, memo);
     };
     return clone;
 });
@@ -5107,7 +5160,7 @@ ArrayIterator.prototype.next = function () {
 };
 
 
-},{"./generic-collection":21,"./generic-order":23,"./shim-function":31,"weak-map":29}],31:[function(_dereq_,module,exports){
+},{"./generic-collection":19,"./generic-order":21,"./shim-function":29,"weak-map":27}],29:[function(_dereq_,module,exports){
 
 module.exports = Function;
 
@@ -5168,7 +5221,7 @@ Function.get = function (key) {
 };
 
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 "use strict";
 
 var WeakMap = _dereq_("weak-map");
@@ -5229,7 +5282,7 @@ Object.isObject = function (object) {
     the value through
 */
 Object.getValueOf = function (value) {
-    if (Object.can(value, "valueOf")) {
+    if (value && typeof value.valueOf === "function") {
         value = value.valueOf();
     }
     return value;
@@ -5237,7 +5290,7 @@ Object.getValueOf = function (value) {
 
 var hashMap = new WeakMap();
 Object.hash = function (object) {
-    if (Object.can(object, "hash")) {
+    if (object && typeof object.hash === "function") {
         return "" + object.hash();
     } else if (Object(object) === object) {
         if (!hashMap.has(object)) {
@@ -5263,32 +5316,6 @@ Object.hash = function (object) {
 var owns = Object.prototype.hasOwnProperty;
 Object.owns = function (object, key) {
     return owns.call(object, key);
-};
-
-/**
-    Returns whether a value implements a particular duck-type method.
-
-    <p>To qualify as a duck-type method, the value in question must have a
-    method by the given name on the prototype chain.  To distinguish it from
-    a property of an object literal, the property must not be owned by the
-    object directly.
-
-    <p>A value that implements a method is not necessarily an object, for
-    example, numbers implement <code>valueOf</code>, so this is function
-    does not imply <code>Object.isObject</code> of the same value.
-
-    @function external:Object.can
-    @param {Any} value a value
-    @param {String} name a method name
-    @returns {Boolean} whether the given value implements the given method
-
-*/
-Object.can = function (object, name) {
-    return (
-        object != null && // false only for null *and* undefined
-        typeof object[name] === "function" &&
-        !owns.call(object, name)
-    );
 };
 
 /**
@@ -5318,7 +5345,7 @@ Object.has = function (object, key) {
         throw new Error("Object.has can't accept non-object: " + typeof object);
     }
     // forward to mapped collections that implement "has"
-    if (Object.can(object, "has")) {
+    if (object && typeof object.has === "function") {
         return object.has(key);
     // otherwise report whether the key is on the prototype chain,
     // as long as it is not one of the methods on object.prototype
@@ -5357,7 +5384,7 @@ Object.get = function (object, key, value) {
         throw new Error("Object.get can't accept non-object: " + typeof object);
     }
     // forward to mapped collections that implement "get"
-    if (Object.can(object, "get")) {
+    if (object && typeof object.get === "function") {
         return object.get(key, value);
     } else if (Object.has(object, key)) {
         return object[key];
@@ -5381,7 +5408,7 @@ Object.get = function (object, key, value) {
     @function external:Object.set
 */
 Object.set = function (object, key, value) {
-    if (Object.can(object, "set")) {
+    if (object && typeof object.set === "function") {
         object.set(key, value);
     } else {
         object[key] = value;
@@ -5390,7 +5417,7 @@ Object.set = function (object, key, value) {
 
 Object.addEach = function (target, source) {
     if (!source) {
-    } else if (Object.can(source, "forEach")) {
+    } else if (typeof source.forEach === "function" && !source.hasOwnProperty("forEach")) {
         // copy map-alikes
         if (typeof source.keys === "function") {
             source.forEach(function (value, key) {
@@ -5542,41 +5569,38 @@ Object.equals = function (a, b, equals) {
     if (a === b)
         // 0 === -0, but they are not equal
         return a !== 0 || 1 / a === 1 / b;
-    if (a === null || b === null)
+    if (a == null || b == null)
         return a === b;
-    if (Object.can(a, "equals"))
+    if (typeof a.equals === "function")
         return a.equals(b, equals);
     // commutative
-    if (Object.can(b, "equals"))
+    if (typeof b.equals === "function")
         return b.equals(a, equals);
-    if (typeof a === "object" && typeof b === "object") {
-        var aPrototype = Object.getPrototypeOf(a);
-        var bPrototype = Object.getPrototypeOf(b);
-        if (
-            aPrototype === bPrototype && (
-                aPrototype === Object.prototype ||
-                aPrototype === null
-            )
-        ) {
-            for (var key in a) {
-                if (!equals(a[key], b[key])) {
-                    return false;
-                }
-            }
-            for (var key in b) {
-                if (!equals(a[key], b[key])) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
     // NaN !== NaN, but they are equal.
     // NaNs are the only non-reflexive value, i.e., if x !== x,
     // then x is a NaN.
     // isNaN is broken: it converts its argument to number, so
     // isNaN("foo") => true
-    return a !== a && b !== b;
+    // We have established that a !== b, but if a !== a && b !== b, they are
+    // both NaN.
+    if (a !== a && b !== b)
+        return true;
+    if (typeof a !== "object" || typeof b !== "object")
+        return a === b;
+    if (Object.getPrototypeOf(a) === Object.prototype && Object.getPrototypeOf(b) === Object.prototype) {
+        for (var name in a) {
+            if (!equals(a[name], b[name])) {
+                return false;
+            }
+        }
+        for (var name in b) {
+            if (!(name in a)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
 };
 
 // Because a return value of 0 from a `compare` function  may mean either
@@ -5620,21 +5644,23 @@ Object.compare = function (a, b) {
     // mercifully handles the Date case
     a = Object.getValueOf(a);
     b = Object.getValueOf(b);
-    var aType = typeof a;
-    var bType = typeof b;
     if (a === b)
         return 0;
+    var aType = typeof a;
+    var bType = typeof b;
     if (aType !== bType)
         return 0;
+    if (a == null)
+        return b == null ? 0 : -1;
     if (aType === "number")
         return a - b;
     if (aType === "string")
         return a < b ? -1 : 1;
         // the possibility of equality elimiated above
-    if (Object.can(a, "compare"))
+    if (typeof a.compare === "function")
         return a.compare(b);
     // not commutative, the relationship is reversed
-    if (Object.can(b, "compare"))
+    if (typeof b.compare === "function")
         return -b.compare(a);
     return 0;
 };
@@ -5666,7 +5692,7 @@ Object.clone = function (value, depth, memo) {
     }
     if (Object.isObject(value)) {
         if (!memo.has(value)) {
-            if (Object.can(value, "clone")) {
+            if (value && typeof value.clone === "function") {
                 memo.set(value, value.clone(depth, memo));
             } else {
                 var prototype = Object.getPrototypeOf(value);
@@ -5694,7 +5720,7 @@ Object.clone = function (value, depth, memo) {
     @returns this
 */
 Object.clear = function (object) {
-    if (Object.can(object, "clear")) {
+    if (object && typeof object.clear === "function") {
         object.clear();
     } else {
         var keys = Object.keys(object),
@@ -5708,7 +5734,7 @@ Object.clear = function (object) {
 };
 
 
-},{"weak-map":29}],33:[function(_dereq_,module,exports){
+},{"weak-map":27}],31:[function(_dereq_,module,exports){
 
 /**
     accepts a string; returns the string with regex metacharacters escaped.
@@ -5724,7 +5750,7 @@ if (!RegExp.escape) {
 }
 
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 
 var Array = _dereq_("./shim-array");
 var Object = _dereq_("./shim-object");
@@ -5732,7 +5758,7 @@ var Function = _dereq_("./shim-function");
 var RegExp = _dereq_("./shim-regexp");
 
 
-},{"./shim-array":30,"./shim-function":31,"./shim-object":32,"./shim-regexp":33}],35:[function(_dereq_,module,exports){
+},{"./shim-array":28,"./shim-function":29,"./shim-object":30,"./shim-regexp":31}],33:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = TreeLog;
@@ -5774,7 +5800,7 @@ TreeLog.unicodeSharp = {
 };
 
 
-},{}],36:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 (function (global){
 
 var rng;
@@ -5809,7 +5835,7 @@ module.exports = rng;
 
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],37:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 (function (Buffer){
 //     uuid.js
 //
@@ -6000,7 +6026,7 @@ uuid.BufferClass = BufferClass;
 module.exports = uuid;
 
 }).call(this,_dereq_("buffer").Buffer)
-},{"./rng":36,"buffer":46}],38:[function(_dereq_,module,exports){
+},{"./rng":34,"buffer":44}],36:[function(_dereq_,module,exports){
 /* jshint node: true */
 /* global document, location, Primus: false */
 'use strict';
@@ -6068,7 +6094,7 @@ module.exports = function(signalhost, callback) {
 
   document.body.appendChild(script);
 };
-},{"url":55}],39:[function(_dereq_,module,exports){
+},{"url":53}],37:[function(_dereq_,module,exports){
 /* jshint node: true */
 'use strict';
 
@@ -6176,7 +6202,7 @@ module.exports = function(signaller) {
     }
   };
 };
-},{"./handlers":12,"cog/jsonparse":16,"cog/logger":17}],40:[function(_dereq_,module,exports){
+},{"./handlers":13,"cog/jsonparse":9,"cog/logger":10}],38:[function(_dereq_,module,exports){
 /* jshint node: true */
 /* global RTCIceCandidate: false */
 /* global RTCSessionDescription: false */
@@ -6543,7 +6569,7 @@ function couple(conn, targetId, signaller, opts) {
 }
 
 module.exports = couple;
-},{"./detect":41,"./monitor":44,"async":45,"cog/logger":9}],41:[function(_dereq_,module,exports){
+},{"./detect":39,"./monitor":42,"async":43,"cog/logger":10}],39:[function(_dereq_,module,exports){
 /* jshint node: true */
 'use strict';
 
@@ -6554,7 +6580,7 @@ module.exports = couple;
   functionality.
 **/
 module.exports = _dereq_('rtc-core/detect');
-},{"rtc-core/detect":10}],42:[function(_dereq_,module,exports){
+},{"rtc-core/detect":11}],40:[function(_dereq_,module,exports){
 /* jshint node: true */
 'use strict';
 
@@ -6667,7 +6693,7 @@ var parseFlags = exports.parseFlags = function(options) {
       return knownFlags.indexOf(flag) >= 0;
     });
 };
-},{"./detect":41,"cog/defaults":7,"cog/logger":9}],43:[function(_dereq_,module,exports){
+},{"./detect":39,"cog/defaults":7,"cog/logger":10}],41:[function(_dereq_,module,exports){
 /* jshint node: true */
 
 'use strict';
@@ -6753,7 +6779,7 @@ exports.createConnection = function(opts, constraints) {
     gen.connectionConstraints(opts, constraints)
   );
 };
-},{"./couple":40,"./detect":41,"./generators":42,"cog/logger":9}],44:[function(_dereq_,module,exports){
+},{"./couple":38,"./detect":39,"./generators":40,"cog/logger":10}],42:[function(_dereq_,module,exports){
 (function (process){
 /* jshint node: true */
 'use strict';
@@ -6915,7 +6941,7 @@ monitor.isActive = function(pc) {
   return isStable && getState(pc) === W3C_STATES.ACTIVE;
 };
 }).call(this,_dereq_("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":50,"cog/logger":9,"events":49}],45:[function(_dereq_,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":48,"cog/logger":10,"events":47}],43:[function(_dereq_,module,exports){
 (function (process){
 /*global setImmediate: false, setTimeout: false, console: false */
 (function () {
@@ -7877,7 +7903,7 @@ monitor.isActive = function(pc) {
 }());
 
 }).call(this,_dereq_("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":50}],46:[function(_dereq_,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":48}],44:[function(_dereq_,module,exports){
 /**
  * The buffer module from node.js, for the browser.
  *
@@ -8990,7 +9016,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":47,"ieee754":48}],47:[function(_dereq_,module,exports){
+},{"base64-js":45,"ieee754":46}],45:[function(_dereq_,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -9113,7 +9139,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	module.exports.fromByteArray = uint8ToBase64
 }())
 
-},{}],48:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -9199,7 +9225,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -9501,7 +9527,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],50:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -9556,7 +9582,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],51:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 (function (global){
 /*! http://mths.be/punycode v1.2.4 by @mathias */
 ;(function(root) {
@@ -10067,7 +10093,7 @@ process.chdir = function (dir) {
 }(this));
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],52:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -10153,7 +10179,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],53:[function(_dereq_,module,exports){
+},{}],51:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -10240,13 +10266,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],54:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 'use strict';
 
 exports.decode = exports.parse = _dereq_('./decode');
 exports.encode = exports.stringify = _dereq_('./encode');
 
-},{"./decode":52,"./encode":53}],55:[function(_dereq_,module,exports){
+},{"./decode":50,"./encode":51}],53:[function(_dereq_,module,exports){
 /*jshint strict:true node:true es5:true onevar:true laxcomma:true laxbreak:true eqeqeq:true immed:true latedef:true*/
 (function () {
   "use strict";
@@ -10879,6 +10905,6 @@ function parseHost(host) {
 
 }());
 
-},{"punycode":51,"querystring":54}]},{},[1])
+},{"punycode":49,"querystring":52}]},{},[1])
 (1)
 });

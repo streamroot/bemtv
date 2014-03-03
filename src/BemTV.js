@@ -67,12 +67,14 @@ BemTV.prototype = {
     var parsedData = utils.parseData(data);
     var resource = parsedData['resource'];
 
-    if (self.isDesire(parsedData) && resource in self.chunksCache) {
+    if (self.isDesire(parsedData) && resource in self.chunksCache && self.currentState != PEER_UPLOADING) { //one send at a time
+      console.log("HAVE RESOURCE, SENDING DESACK " + id + ":" + resource);
       self.currentState = PEER_UPLOADING;
       var desAckMessage = utils.createMessage(CHUNK_DESACK, resource);
       self.swarm[id].send(desAckMessage);
 
     } else if (self.isDesAck(parsedData) && self.currentState == PEER_DESIRING) {
+      console.log("RECEIVED DESACK, SENDING REQ " + id + ":" + resource);
       clearTimeout(self.requestTimeout);
       self.currentState = PEER_DOWNLOADING;
       var reqMessage = utils.createMessage(CHUNK_REQ, resource);
@@ -80,12 +82,14 @@ BemTV.prototype = {
       this.requestTimeout = setTimeout(function() { self.getFromCDN(resource); }, REQ_TIMEOUT *1000);
 
     } else if (self.isReq(parsedData)) { // what happens if the chunk is removed from cache on this step?
+      console.log("RECEIVED REQ, SENDING CHUNK " + id + ":" + resource);
       var offerMessage = utils.createMessage(CHUNK_OFFER, resource, self.chunksCache[resource]);
       self.swarm[id].send(offerMessage);
       utils.incrementCounter("chunksToP2P");
       self.currentState = PEER_IDLE;
 
     } else if (self.isOffer(parsedData) && resource == self.currentUrl) {
+      console.log("RECEIVED OFFER, GETTING CHUNK " + id + ":" + resource);
       clearTimeout(self.requestTimeout);
       self.sendToPlayer(parsedData['chunk']);
       utils.incrementCounter("chunksFromP2P");
