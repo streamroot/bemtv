@@ -5,8 +5,9 @@
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
     <script type="text/javascript" src="js/bemtv.bundle.js"></script>
+    <script type="text/javascript" src="http://canvasjs.com/assets/script/canvasjs.min.js"></script>
   </head>
-  <body align=center>
+  <body align=center style="text-align:-moz-center;">
     <div id="ae"></div>
     <div id="head" style="margin-bottom:10px">
         <img src="http://bem.tv/static/bemtvfinal2.png">
@@ -81,43 +82,18 @@
 </table>
 
 
-<!--
-<table border id="mediaControl">
-  <tr>
-    <th><button onclick="seek(document.getElementById('mediaControl').rows[0].cells[1].children[0].value)">Seek to</button></th>
-    <td><input type="text" name="seek_position"></td>
-  </tr>
-  <tr>
-    <th><button onclick="volume(document.getElementById('mediaControl').rows[1].cells[1].children[0].value)">Set Volume</button></th>
-    <td><input type="text" name="volume_level"></td>
-  </tr>
-  <tr>
-    <th><button onclick="setlevel(document.getElementById('mediaControl').rows[2].cells[1].children[0].value)">Set Level</button></th>
-    <td><input type="text" name="quality_level"></td>
-  </tr>
-  <tr>
-  <th><button onclick="setminBufferLength(document.getElementById('mediaControl').rows[3].cells[1].children[0].value)">Set min Buffer Size</button></th>
-    <td><input type="text" name="min_buffer_size"></td>
-  </tr>
-  <tr>
-    <th><button onclick="setmaxBufferLength(document.getElementById('mediaControl').rows[4].cells[1].children[0].value)">Set max Buffer Size</button></th>
-    <td><input type="text" name="max_buffer_size"></td>
-  </tr>
-</table>
--->
 
 </font>
 </div>
 <p>
 
+<div id="chartContainer" style="height: 300px; width: 640px;text-align:-moz-center;position: absolute">
+</script>
+
 <script type="text/javascript">
 function userSubmit() {
    load(document.getElementById('userInput').value);
 }
-</script>
-
-</p><div style="text-align: left;">
-<script type="text/javascript">
 
 var current_url;
 var player_id = "BemTVplayer";
@@ -141,8 +117,6 @@ function appendLog(txt)
 {
   var d = new Date();
   var msg = '[' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + '] ' + txt;
-  console.log(msg);
-  document.getElementById("videoStatus").innerHTML += msg + "<br />";
 }
 
 function load(url) {
@@ -413,6 +387,46 @@ function getFlashMovieObject(movieName)
 <script>
   window.onload = function() {
     bemtvConnector = new BemTV();
+
+    var fromCDN = []; var fromP2P = []; var toP2P = [];
+    var chart = new CanvasJS.Chart("chartContainer",{
+      axisX: {title: ""},
+      axisY: {title: "Chunks",gridColor: "#F5F5F5",includeZero: false, minimum: 0},
+      legend: {fontSize: 20, verticalAlign: "top"},
+      data: [
+        {name: "From CDN", type: "stepLine", dataPoints : fromCDN, showInLegend: true, markerSize: 0 },
+        {name: "From P2P", type: "stepLine", dataPoints : fromP2P, showInLegend: true, markerSize: 0},
+        {name: "Uploaded", type: "stepLine", dataPoints : toP2P,   showInLegend: true, markerSize: 0 }
+      ],
+    });
+
+    chart.render();
+    var xVal = fromCDN.length + 1;
+    var updateInterval = 2000;
+
+    var updateChart = function () {
+      cdnValue = parseInt(document.getElementById('chunksFromCDN').innerHTML);
+      p2pValue = parseInt(document.getElementById('chunksFromP2P').innerHTML);
+      p2pUpload = parseInt(document.getElementById('chunksToP2P').innerHTML);
+      fromCDN.push({x: xVal,y: cdnValue});
+      fromP2P.push({x: xVal,y: p2pValue});
+      toP2P.push({x: xVal, y: p2pUpload});
+
+      xVal++;
+
+      if (fromCDN.length >  10 ) {
+        fromCDN.shift();
+        fromP2P.shift();
+        toP2P.shift();
+      }
+      chart.render();
+    };
+
+    setInterval(function(){updateChart()}, updateInterval);
+    setTimeout(function() {
+      window.userSubmit();
+      window.play();
+    }, 1000);
   }
 </script>
 
