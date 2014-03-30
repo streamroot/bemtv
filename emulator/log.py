@@ -1,4 +1,5 @@
 from termcolor import colored
+from datetime import datetime
 
 class Logger(object):
 
@@ -9,10 +10,10 @@ class Logger(object):
     def info(self, id, message):
         color = self._get_color(id)
         attrs = []
-        if "Yeah" in message:
+        if "Yeah" in message or "No" in message:
             attrs = ['bold', 'dark']
 
-        print colored("[%s] %s" % (id, message), color, attrs=attrs)
+            print str(datetime.now()) + " " + colored("[%s] %s" % (id, message), color, attrs=attrs)
 
     def _get_color(self, id):
         if id not in self.ids_and_colors:
