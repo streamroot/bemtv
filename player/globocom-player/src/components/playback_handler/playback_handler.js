@@ -31,6 +31,7 @@ var PlaybackHandler = BaseObject.extend({
     var playbackPlugin = this.findPlaybackPlugin(source);
     var playback = new playbackPlugin({src: source, autoPlay: !!this.params.autoPlay});
     var container = new Container({playback: playback});
+    playback.setContainer(container);
     this.addContainerPlugins(container);
     callback && callback(container);
     return container;

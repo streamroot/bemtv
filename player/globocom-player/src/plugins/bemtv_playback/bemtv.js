@@ -3,7 +3,7 @@ var Peer = require('./peer');
 var work = require('webworkify');
 var cdn_getter = work(require('./cdn_getter.js'));
 
-var BemtvCore = BaseObject.extend({
+var BemTVCore = BaseObject.extend({
   initialize: function(container, el) {
     this.container = container;
     this.el = el;
@@ -26,4 +26,4 @@ var BemtvCore = BaseObject.extend({
   },
 });
 
-module.exports = BemtvCore;
+module.exports = BemTVCore;

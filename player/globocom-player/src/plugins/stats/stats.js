@@ -13,7 +13,7 @@ var StatsPlugin = Plugin.extend({
     StatsPlugin.super('initialize').call(this, options);
     this.container.with(StatsEvents);
     this.setInitialAttrs();
-    this.reportInterval = options.reportInterval || 60000;
+    this.reportInterval = options.reportInterval || 5000;
   },
   bindEvents: function() {
     this.listenTo(this.container, 'container:play', this.onPlay);
