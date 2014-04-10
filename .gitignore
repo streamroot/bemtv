@@ -5,6 +5,7 @@ bin-release/
 node_modules/
 *.cache
 Gemfile.lock
+*.pyc
 
 # Other files and folders
 .settings/
