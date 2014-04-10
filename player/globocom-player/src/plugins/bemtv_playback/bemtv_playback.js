@@ -24,6 +24,7 @@ var BemTVP2PVideoPlaybackPlugin = UIPlugin.extend({
       right: ["fullscreen", "volume"]
     };
     this.bemtv = new BemtvCore(this.container, this.el);
+    this.listenTo(this.container, "container:stats:report", onStatsReport);
     this.checkIfFlashIsReady();
   },
   requestResource: function(url) {
@@ -31,6 +32,9 @@ var BemTVP2PVideoPlaybackPlugin = UIPlugin.extend({
   },
   getCurrentMediaSequence: function() {
     this.container.statsAdd({"currentMediaSequence": this.el.getCurrentMediaSequence()});
+  },
+  onStatsReport: function(stats) {
+    console.log(stats);
   },
   bootstrap: function() {
     this.trigger('playback:ready', this.name);
