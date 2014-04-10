@@ -27,7 +27,7 @@ task :default => "P2PPlayer.swf"
 
 mxmlc "P2PPlayer.swf" do |t|
   t.input = "src/org/mangui/chromeless/ChromelessPlayer.as"
-  t.output = "P2PPlayer.swf"
+  t.output = "../globocom-player/src/plugins/bemtv_p2p_video_playback/public/P2PPlayer.swf"
   configure_task t
 end
 
