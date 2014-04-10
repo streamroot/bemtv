@@ -13,7 +13,6 @@ var BemTVCore = BaseObject.extend({
       this.peer = this.createPeer();
     }
     cdn_getter.addEventListener('message', this.resourceLoaded.bind(this), false);
-    this.container.setVolume(0);
   },
   requestResource: function(url) {
     cdn_getter.postMessage(url);
