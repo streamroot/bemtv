@@ -11,7 +11,7 @@ package tv.bem {
     }
 
     override public function load(request:URLRequest):void {
-      ExternalInterface.call("player.core.containers[0].getPluginByName('bemtv_p2p_video_playback').requestResource", request.url);
+      ExternalInterface.call("player.core.containers[0].getPluginByName('bemtv_playback').requestResource", request.url);
       dispatchEvent(new Event(Event.OPEN));
     }
   }

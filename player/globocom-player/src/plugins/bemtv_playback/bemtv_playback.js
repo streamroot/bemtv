@@ -16,7 +16,7 @@ var BemTVP2PVideoPlaybackPlugin = UIPlugin.extend({
     'data-bemtv-playback': ''
   },
   initialize: function(options) {
-    this.src = options.src.replace("http+p2p", "http");
+    this.src = options.src.replace("p2p+http", "http");
     this.swfPath = options.swfPath || "assets/P2PPlayer.swf";
     this.autoPlay = options.autoPlay;
     this.settings = {
@@ -34,13 +34,11 @@ var BemTVP2PVideoPlaybackPlugin = UIPlugin.extend({
   getCurrentMediaSequence: function() {
     this.container.statsAdd({"currentMediaSequence": this.el.getCurrentMediaSequence()});
   },
-  onStatsReport: function(stats) {
-    console.log(stats);
-  },
   bootstrap: function() {
     clearInterval(this.bootstrapId);
+    this.el.width = "100%";
+    this.el.height = "100%";
     this.bemtv = new BemTVCore(this.container, this.el);
-    this.listenTo(this.container, "container:stats:report", this.onStatsReport);
     this.trigger('playback:ready', this.name);
     this.currentState = "IDLE";
     this.timedCheckState();

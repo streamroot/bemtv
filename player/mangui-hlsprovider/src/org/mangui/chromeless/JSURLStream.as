@@ -80,7 +80,6 @@ package org.mangui.chromeless {
         }
 
         protected function resourceLoaded(base64Resource : String) : void {
-            Log.info("resourceLoaded");
             _resource = new ByteArray();
             _read_position = 0;
             _timer = new Timer(0, 0);
@@ -109,7 +108,6 @@ package org.mangui.chromeless {
             _resource.writeBytes(Base64.decode(tmpString));
             if (decode_completed) {
                 _timer.stop();
-                Log.info("resourceLoaded and decoded");
                 _resource.position = 0;
                 this.dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, false, false, _resource.bytesAvailable, _resource.bytesAvailable));
                 this.dispatchEvent(new Event(Event.COMPLETE));
