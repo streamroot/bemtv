@@ -4,6 +4,8 @@ bin/
 bin-debug/
 bin-release/
 node_modules/
+landpage/
+dist/
 *.cache
 Gemfile.lock
 *.pyc
