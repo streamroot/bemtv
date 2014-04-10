@@ -3,6 +3,8 @@ package org.mangui.HLS.streaming {
     import org.mangui.HLS.parsing.*;
     import org.mangui.HLS.utils.*;
 
+    import flash.external.ExternalInterface;
+
     import flash.events.*;
     import flash.net.*;
     import flash.utils.*;
@@ -32,6 +34,8 @@ package org.mangui.HLS.streaming {
         /** flush live URL cache **/
         private var _flushLiveURLCache : Boolean = false;
 
+        private var currentMediaSequence:Number = 0;
+
         /** Setup the loader. **/
         public function ManifestLoader(hls : HLS) {
             _hls = hls;
@@ -42,6 +46,7 @@ package org.mangui.HLS.streaming {
             _urlloader.addEventListener(Event.COMPLETE, _loaderHandler);
             _urlloader.addEventListener(IOErrorEvent.IO_ERROR, _errorHandler);
             _urlloader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, _errorHandler);
+            ExternalInterface.addCallback("getCurrentMediaSequence", getCurrentMediaSequence);
         };
 
         /** Loading failed; return errors. **/
@@ -62,6 +67,10 @@ package org.mangui.HLS.streaming {
         /** Return the current manifest. **/
         public function get levels() : Vector.<Level> {
             return _levels;
+        };
+
+        public function getCurrentMediaSequence():Number {
+          return currentMediaSequence;
         };
 
         /** Return the stream type. **/
@@ -91,6 +100,8 @@ package org.mangui.HLS.streaming {
             if (string != null && string.length != 0) {
                 Log.debug("level " + index + " playlist:\n" + string);
                 var frags : Vector.<Fragment> = Manifest.getFragments(string, url);
+                currentMediaSequence = Manifest.getCurrentMediaSequence();
+
                 // set fragment and update sequence number range
                 _levels[index].updateFragments(frags);
                 _levels[index].targetduration = Manifest.getTargetDuration(string);

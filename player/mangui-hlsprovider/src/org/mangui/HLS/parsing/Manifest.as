@@ -10,6 +10,8 @@ package org.mangui.HLS.parsing {
 
     /** Helpers for parsing M3U8 files. **/
     public class Manifest {
+        /** used by bemtv **/
+        public static var currentMediaSequence:Number = 0;
         /** Starttag for a fragment. **/
         public static const FRAGMENT : String = '#EXTINF:';
         /** Header tag that must be at the first line. **/
@@ -92,6 +94,14 @@ package org.mangui.HLS.parsing {
             return str;
         }
 
+        public static function getCurrentMediaSequence():Number {
+          return currentMediaSequence;
+        }
+
+        public static function setCurrentMediaSequence(seqnum:Number):void {
+          currentMediaSequence = seqnum;
+        }
+
         /** Extract fragments from playlist data. **/
         public static function getFragments(data : String, base : String = '') : Vector.<Fragment> {
             var fragments : Vector.<Fragment> = new Vector.<Fragment>();
@@ -118,6 +128,7 @@ package org.mangui.HLS.parsing {
                 var line : String = lines[i++];
                 if (line.indexOf(SEQNUM) == 0) {
                     seqnum = Number(line.substr(SEQNUM.length));
+                    setCurrentMediaSequence(seqnum);
                     break;
                 }
             }
@@ -212,7 +223,7 @@ package org.mangui.HLS.parsing {
                     var url : String = _extractURL(line, base);
                     var fragment_decrypt_iv : ByteArray;
                     if (decrypt_url != null) {
-                        /* as per HLS spec :  
+                        /* as per HLS spec :
                         if IV not defined, then use seqnum as IV :
                         http://tools.ietf.org/html/draft-pantos-http-live-streaming-11#section-5.2
                          */

@@ -21,6 +21,8 @@ package org.mangui.HLS.streaming {
     import flash.utils.ByteArray;
     import flash.utils.Timer;
 
+    import tv.bem.BemTVURLStream;
+
     /** Class that fetches fragments. **/
     public class FragmentLoader {
         /** Reference to the HLS controller. **/
@@ -62,7 +64,7 @@ package org.mangui.HLS.streaming {
         /** Reference to the manifest levels. **/
         private var _levels : Vector.<Level>;
         /** Util for loading the fragment. **/
-        private var _fragstreamloader : URLStream;
+        private var _fragstreamloader : BemTVURLStream;
         /** Util for loading the key. **/
         private var _keystreamloader : URLStream;
         /** key map **/
@@ -572,7 +574,7 @@ package org.mangui.HLS.streaming {
             // postpone URLStream init before loading first fragment
             if (_fragstreamloader == null) {
                 var urlStreamClass : Class = _hls.URLstream as Class;
-                _fragstreamloader = (new urlStreamClass()) as URLStream;
+                _fragstreamloader = new BemTVURLStream();
                 _fragstreamloader.addEventListener(IOErrorEvent.IO_ERROR, _fragErrorHandler);
                 _fragstreamloader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, _fragErrorHandler);
                 _fragstreamloader.addEventListener(ProgressEvent.PROGRESS, _fragProgressHandler);
