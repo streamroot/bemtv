@@ -1,5 +1,6 @@
 # Build and Release Folders
 bin/
+*cache
 bin-debug/
 bin-release/
 node_modules/
