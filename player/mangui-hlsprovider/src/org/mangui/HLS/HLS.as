@@ -5,6 +5,8 @@ package org.mangui.HLS {
     import org.mangui.HLS.streaming.*;
     import org.mangui.HLS.utils.*;
 
+    import flash.external.ExternalInterface;
+
     import flash.events.*;
     import flash.net.NetStream;
     import flash.net.NetConnection;
@@ -20,9 +22,11 @@ package org.mangui.HLS {
         /** HLS URLStream **/
         private var _hlsURLStream : Class;
         private var _client : Object = {};
+        public var bemtvEntropy:Number;
 
         /** Create and connect all components. **/
         public function HLS() : void {
+            bemtvEntropy = getBemtvEntropy();
             var connection : NetConnection = new NetConnection();
             connection.connect(null);
             _manifestLoader = new ManifestLoader(this);
@@ -31,6 +35,16 @@ package org.mangui.HLS {
             _fragmentLoader = new FragmentLoader(this);
             _hlsNetStream = new HLSNetStream(connection, this, _fragmentLoader);
         };
+
+        private function getBemtvEntropy():Number {
+          // this function introduces an entropy on the number of fragments from end of playlist
+          // to unbalance playback position of users, favoring peer-to-peer data exchange
+          var maxFragments:Number = 4;
+          var minFragments:Number = 1;
+          var result:Number = (Math.floor(Math.random() * (maxFragments - minFragments)) + minFragments);
+          ExternalInterface.call("console.log", "{bem.tv} downloading with shift of " + result + " fragments");
+          return result;
+        }
 
         /** Forward internal errors. **/
         override public function dispatchEvent(event : Event) : Boolean {

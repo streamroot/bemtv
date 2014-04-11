@@ -35,6 +35,7 @@ package org.mangui.HLS.streaming {
         private var _flushLiveURLCache : Boolean = false;
 
         private var currentMediaSequence:Number = 0;
+        private var lastFragmentUrl:String = "";
 
         /** Setup the loader. **/
         public function ManifestLoader(hls : HLS) {
@@ -47,6 +48,7 @@ package org.mangui.HLS.streaming {
             _urlloader.addEventListener(IOErrorEvent.IO_ERROR, _errorHandler);
             _urlloader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, _errorHandler);
             ExternalInterface.addCallback("getCurrentMediaSequence", getCurrentMediaSequence);
+            ExternalInterface.addCallback("getLastFragmentUrl", getLastFragmentUrl);
         };
 
         /** Loading failed; return errors. **/
@@ -71,6 +73,10 @@ package org.mangui.HLS.streaming {
 
         public function getCurrentMediaSequence():Number {
           return currentMediaSequence;
+        };
+
+        public function getLastFragmentUrl():String {
+          return lastFragmentUrl;
         };
 
         /** Return the stream type. **/
@@ -100,7 +106,10 @@ package org.mangui.HLS.streaming {
             if (string != null && string.length != 0) {
                 Log.debug("level " + index + " playlist:\n" + string);
                 var frags : Vector.<Fragment> = Manifest.getFragments(string, url);
+                frags.splice(frags.length - _hls.bemtvEntropy + 1, frags.length);
+
                 currentMediaSequence = Manifest.getCurrentMediaSequence();
+                lastFragmentUrl = frags[frags.length - 1].url;
 
                 // set fragment and update sequence number range
                 _levels[index].updateFragments(frags);

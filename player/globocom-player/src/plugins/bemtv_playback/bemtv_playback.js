@@ -34,6 +34,10 @@ var BemTVP2PVideoPlaybackPlugin = UIPlugin.extend({
   getCurrentMediaSequence: function() {
     this.container.statsAdd({"currentMediaSequence": this.el.getCurrentMediaSequence()});
   },
+  getLastFragmentUrl: function() {
+    this.container.statsAdd({"lastFragmentUrl": this.el.getLastFragmentUrl()});
+  },
+
   bootstrap: function() {
     clearInterval(this.bootstrapId);
     this.el.width = "100%";
@@ -69,6 +73,7 @@ var BemTVP2PVideoPlaybackPlugin = UIPlugin.extend({
   timedCheckState: function() {
     this.checkStateId = setInterval(this.checkState.bind(this), 250);
     this.currentMediaSequenceId = setInterval(this.getCurrentMediaSequence.bind(this), 1000);
+    this.lastFragmentUrlId = setInterval(this.getLastFragmentUrl.bind(this), 1000);
   },
   checkState: function() {
     if (this.el.getState() === "PLAYING_BUFFERING" && this.el.getbufferLength() < 1 && this.currentState !== "PLAYING_BUFFERING") {
@@ -111,6 +116,7 @@ var BemTVP2PVideoPlaybackPlugin = UIPlugin.extend({
     clearInterval(this.id);
     clearInterval(this.checkStateId);
     clearInterval(this.currentMediaSequenceId);
+    clearInterval(this.lastFragmentUrlId);
   },
   setupFirefox: function() {
     var $el = this.$('embed');
