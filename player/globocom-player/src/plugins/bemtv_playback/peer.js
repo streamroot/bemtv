@@ -14,8 +14,11 @@ var Peer = BaseObject.extend({
     this.container = container;
     this.el = el;
     this.swarm = {};
+    this.peersServed = {};
     this.room = this.discoverRoom(BEMTV_ROOM_DISCOVER_URL);
-    this.listenTo(this.container, 'container:stats:report', this.onStatsReport);
+    this.connect();
+  },
+  connect: function() {
     console.log("[bemtv] detected swarm name: " + this.room);
     connection = rtc_quickconnect(BEMTV_SERVER, {room: this.room, iceServers: freeice()});
     console.log("[bemtv] connecting... ");
@@ -33,21 +36,30 @@ var Peer = BaseObject.extend({
   },
   onOpen: function(dc, id) {
     this.swarmAdd(id, dc);
-    this.send(id, "hello:");
+    if (this.container.getPluginByName('stats').getStats()['watchingTime']) {
+      this.send(id, _.extend({"msg": "PING"}, this.getScoreParameters()));
+    }
   },
   send: function(id, message) {
-    console.log("[bemtv] sending " + message + " to id " + id);
     var sendingTime = Date.now();
-    this.swarm[id].send(JSON.stringify({"msg" : message, 'sendingTime': sendingTime}));
+    this.swarm[id].dataChannel.send(JSON.stringify({"msg" : message, 'sendingTime': sendingTime}));
   },
   recv: function(id, message) {
-    msg = JSON.parse(message);
-    rtt = abs(new Date.now() - msg.sendingTime);
-    console.log("[bemtv] received " + msg['msg'] + " from id " + id + " (rtt: " + rtt + "ms)");
+    data = JSON.parse(message);
+    rtt = Math.abs(Date.now() - data.sendingTime);
+    console.log(data);
+    if (data.msg['msg'] == "PING") {
+      this.swarm[id]["score"] = this.calculateScore(_.extend({"rtt":rtt}, data.msg.scoreParams));
+    }
+  },
+  calculateScore: function(params) {
+    console.log("Need to calculate score for: ", params);
+    return 600;
   },
   swarmAdd: function(id, dc) {
-    this.swarm[id] = rtc_bufferedchannel(dc, {calcCharSize: false});
-    this.swarm[id].on('data', function(data) { this.onData(id, data); }.bind(this));
+    dataChannel = rtc_bufferedchannel(dc, {calcCharSize: false});
+    this.swarm[id] = {"dataChannel" : dataChannel, "score": undefined};
+    dataChannel.on('data', function(data) { this.onData(id, data); }.bind(this));
   },
   onData: function(id, data) {
     this.recv(id, data);
@@ -56,9 +68,11 @@ var Peer = BaseObject.extend({
     console.log("[bemtv] peer " + id + " disconnected.");
     delete this.swarm[id];
   },
-  onStatsReport: function(metrics) {
-    console.log("[bemtv] stats: ", metrics);
-    this.metrics = metrics;
+  getScoreParameters: function() {
+    this.metrics = this.container.getPluginByName('stats').getStats();
+    return {"scoreParams": {"wt": this.metrics['watchingTime'] || 0,
+            "bt": this.metrics['rebufferingTime'] || 0 ,
+            "tps": this.peersServed.length || 0}};
   }
 });
 
