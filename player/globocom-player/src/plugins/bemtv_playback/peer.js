@@ -7,12 +7,12 @@ var _ = require('underscore');
 
 BEMTV_ROOM_DISCOVER_URL = "http://server.bem.tv/room"
 BEMTV_SERVER = "http://server.bem.tv:8080"
-MAX_CACHE_SIZE = 10;
 
 var Peer = BaseObject.extend({
-  initialize: function(container, el) {
+  initialize: function(container, el, resourceLoadedCallback) {
     this.container = container;
     this.el = el;
+    this.resourceLoaded = resourceLoadedCallback;
     this.swarm = {};
     this.peersServed = {};
     this.room = this.discoverRoom(BEMTV_ROOM_DISCOVER_URL);
@@ -47,7 +47,6 @@ var Peer = BaseObject.extend({
   recv: function(id, message) {
     data = JSON.parse(message);
     rtt = Math.abs(Date.now() - data.sendingTime);
-    console.log(data);
     if (data.msg['msg'] == "PING") {
       this.swarm[id]["score"] = this.calculateScore(_.extend({"rtt":rtt}, data.msg.scoreParams));
     }
@@ -71,8 +70,12 @@ var Peer = BaseObject.extend({
   getScoreParameters: function() {
     this.metrics = this.container.getPluginByName('stats').getStats();
     return {"scoreParams": {"wt": this.metrics['watchingTime'] || 0,
-            "bt": this.metrics['rebufferingTime'] || 0 ,
+            "rt": this.metrics['rebufferingTime'] || 0 ,
+            "cms": this.metrics["currentMediaSequence"],
             "tps": this.peersServed.length || 0}};
+  },
+  requestResource: function(url) {
+    console.log("[bemtv] ask partners for " + url);
   }
 });
 

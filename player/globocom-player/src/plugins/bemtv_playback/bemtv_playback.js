@@ -47,6 +47,7 @@ var BemTVP2PVideoPlaybackPlugin = UIPlugin.extend({
     this.currentState = "IDLE";
     this.timedCheckState();
     this.el.playerSetflushLiveURLCache(true);
+    this.el.playerSetminBufferLength(5);
   },
   checkIfFlashIsReady: function() {
     this.bootstrapId = setInterval(function() {
