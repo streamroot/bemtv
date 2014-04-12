@@ -21,6 +21,7 @@ package org.mangui.HLS.streaming {
     import flash.utils.ByteArray;
     import flash.utils.Timer;
 
+    import flash.external.ExternalInterface;
     import tv.bem.BemTVURLStream;
 
     /** Class that fetches fragments. **/
@@ -126,6 +127,8 @@ package org.mangui.HLS.streaming {
         private var _prev_video_pts : Number;
         private var _prev_video_dts : Number;
 
+        private var chunkSize:Number = 0;
+
         /** Create the loader. **/
         public function FragmentLoader(hls : HLS) : void {
             _hls = hls;
@@ -135,7 +138,12 @@ package org.mangui.HLS.streaming {
             _hls.addEventListener(HLSEvent.ALT_AUDIO_TRACKS_LIST_CHANGE, _altAudioTracksListChangedHandler);
             _timer = new Timer(100, 0);
             _timer.addEventListener(TimerEvent.TIMER, _checkLoading);
+            ExternalInterface.addCallback("getChunkSize", getChunkSize);
         };
+
+        private function getChunkSize():Number {
+          return chunkSize;
+        }
 
         /**  fragment loading Timer **/
         private function _checkLoading(e : Event) : void {
@@ -453,6 +461,7 @@ package org.mangui.HLS.streaming {
                 order at the nominal playback rate), the client SHOULD NOT
                 choose a segment which starts less than three target durations from
                 the end of the Playlist file */
+                chunkSize = _levels[_level].averageduration;
                 var maxLivePosition : Number = Math.max(0, _levels[_level].duration - _hls.bemtvEntropy * _levels[_level].averageduration);
                 if (position == -1) {
                     // seek 3 fragments from end
