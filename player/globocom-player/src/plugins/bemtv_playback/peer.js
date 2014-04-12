@@ -9,10 +9,10 @@ BEMTV_ROOM_DISCOVER_URL = "http://server.bem.tv/room"
 BEMTV_SERVER = "http://server.bem.tv:8080"
 
 var Peer = BaseObject.extend({
-  initialize: function(container, el, resourceLoadedCallback) {
+  initialize: function(container, el, cache) {
     this.container = container;
     this.el = el;
-    this.resourceLoaded = resourceLoadedCallback;
+    this.cache = cache;
     this.swarm = {};
     this.peersServed = {};
     this.room = this.discoverRoom(BEMTV_ROOM_DISCOVER_URL);
@@ -57,7 +57,7 @@ var Peer = BaseObject.extend({
   },
   swarmAdd: function(id, dc) {
     dataChannel = rtc_bufferedchannel(dc, {calcCharSize: false});
-    this.swarm[id] = {"dataChannel" : dataChannel, "score": undefined};
+    this.swarm[id] = {"dataChannel" : dataChannel, "score": undefined, "id": id};
     dataChannel.on('data', function(data) { this.onData(id, data); }.bind(this));
   },
   onData: function(id, data) {
@@ -74,8 +74,12 @@ var Peer = BaseObject.extend({
             "cms": this.metrics["currentMediaSequence"],
             "tps": this.peersServed.length || 0}};
   },
-  requestResource: function(url) {
-    console.log("[bemtv] ask partners for " + url);
+  requestResource: function(url, timeoutId) {
+    _.each(this.swarm, function(peer) {
+      this.send(id, "REQ:" + url);
+    });
+    this.currentUrl = url;
+    this.timeoutId = timeoutId;
   }
 });
 
