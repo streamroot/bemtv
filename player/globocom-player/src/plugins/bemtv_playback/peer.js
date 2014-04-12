@@ -37,12 +37,12 @@ var Peer = BaseObject.extend({
   },
   send: function(id, message) {
     console.log("[bemtv] sending " + message + " to id " + id);
-    var sendingTime = new Date().getTime();
+    var sendingTime = Date.now();
     this.swarm[id].send(JSON.stringify({"msg" : message, 'sendingTime': sendingTime}));
   },
   recv: function(id, message) {
     msg = JSON.parse(message);
-    rtt = new Date().getTime() - msg.sendingTime;
+    rtt = abs(new Date.now() - msg.sendingTime);
     console.log("[bemtv] received " + msg['msg'] + " from id " + id + " (rtt: " + rtt + "ms)");
   },
   swarmAdd: function(id, dc) {
