@@ -47,7 +47,9 @@ var BemTVP2PVideoPlaybackPlugin = UIPlugin.extend({
     this.currentState = "IDLE";
     this.timedCheckState();
     this.el.playerSetflushLiveURLCache(true);
-    this.el.playerSetminBufferLength(5);
+    this.el.playerSetminBufferLength(10);
+    this.el.playerSetmaxBufferLength(17);
+    this.el.playerVolume(0);
   },
   checkIfFlashIsReady: function() {
     this.bootstrapId = setInterval(function() {
@@ -72,7 +74,7 @@ var BemTVP2PVideoPlaybackPlugin = UIPlugin.extend({
     }
   },
   timedCheckState: function() {
-    this.checkStateId = setInterval(this.checkState.bind(this), 250);
+    this.checkStateId = setInterval(this.checkState.bind(this), 1000);
     this.currentMediaSequenceId = setInterval(this.getCurrentMediaSequence.bind(this), 1000);
     this.lastFragmentUrlId = setInterval(this.getLastFragmentUrl.bind(this), 1000);
   },

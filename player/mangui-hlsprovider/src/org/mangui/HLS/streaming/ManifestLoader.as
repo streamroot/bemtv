@@ -106,7 +106,7 @@ package org.mangui.HLS.streaming {
             if (string != null && string.length != 0) {
                 Log.debug("level " + index + " playlist:\n" + string);
                 var frags : Vector.<Fragment> = Manifest.getFragments(string, url);
-                frags.splice(frags.length - _hls.bemtvEntropy + 1, frags.length);
+                frags.splice(frags.length - _hls.bemtvEntropy, frags.length);
 
                 currentMediaSequence = Manifest.getCurrentMediaSequence();
                 lastFragmentUrl = frags[frags.length - 1].url;

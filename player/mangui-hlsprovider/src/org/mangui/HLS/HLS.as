@@ -39,7 +39,7 @@ package org.mangui.HLS {
         private function getBemtvEntropy():Number {
           // this function introduces an entropy on the number of fragments from end of playlist
           // to unbalance playback position of users, favoring peer-to-peer data exchange
-          var maxFragments:Number = 4;
+          var maxFragments:Number = 5;
           var minFragments:Number = 1;
           var result:Number = (Math.floor(Math.random() * (maxFragments - minFragments)) + minFragments);
           ExternalInterface.call("console.log", "{bem.tv} downloading with shift of " + result + " fragments");
@@ -119,7 +119,7 @@ package org.mangui.HLS {
             return _hlsNetStream.bufferLength;
         };
 
-        /** set minimum buffer Length in seconds 
+        /** set minimum buffer Length in seconds
          * playback will start only if this minimum threshold is reached */
         public function set minBufferLength(new_len : Number) : void {
             _hlsNetStream.minBufferLength = new_len;
@@ -155,7 +155,7 @@ package org.mangui.HLS {
             _fragmentLoader.audioTrack = val;
         }
 
-        /** if set to true, it will force to flush live URL cache, could be useful with live playlist 
+        /** if set to true, it will force to flush live URL cache, could be useful with live playlist
          * as some combinations of Flash Player / Internet Explorer are not able to detect updated URL properly
          **/
         public function set flushLiveURLCache(val : Boolean) : void {

@@ -11,6 +11,7 @@ BEMTV_SERVER = "http://server.bem.tv:8080"
 var Peer = BaseObject.extend({
   initialize: function(container, el, cache) {
     this.container = container;
+    this.listenTo(this.container, "container:state:bufferfull", this.onBufferFull);
     this.el = el;
     this.cache = cache;
     this.swarm = {};
@@ -35,10 +36,18 @@ var Peer = BaseObject.extend({
     return response? JSON.parse(response)['room']: "bemtv";
   },
   onOpen: function(dc, id) {
+    console.log("[bemtv] peer " + id + " joined");
     this.swarmAdd(id, dc);
     if (this.container.getPluginByName('stats').getStats()['watchingTime']) {
       this.send(id, _.extend({"msg": "PING"}, this.getScoreParameters()));
     }
+  },
+  onBufferFull: function() {
+    _.each(this.swarm, function(peer) {
+      setTimeout(function() {
+        this.send(peer.id, _.extend({"msg": "PING"}, this.getScoreParameters()));
+      }.bind(this), 2000);
+    }.bind(this));
   },
   send: function(id, message) {
     var sendingTime = Date.now();
@@ -46,9 +55,28 @@ var Peer = BaseObject.extend({
   },
   recv: function(id, message) {
     data = JSON.parse(message);
+    msg = data.msg['msg'];
     rtt = Math.abs(Date.now() - data.sendingTime);
-    if (data.msg['msg'] == "PING") {
+    if (msg == "PING") {
       this.swarm[id]["score"] = this.calculateScore(_.extend({"rtt":rtt}, data.msg.scoreParams));
+      this.swarm[id]["scoreUpdatedAt"] = Date.now();
+      this.swarm[id] = _.extend(this.swarm[id], data.msg.scoreParams); // erase this line after score calculation
+    } else if (msg == "REQ") {
+      _.each(this.cache, function(chunk) {
+        if (chunk.url == data.msg.url) {
+          console.log("[bemtv] have chunk requested. sending.");
+          this.send(id, {"msg": "OFFER", "url": data.msg.url, "content": chunk.data});
+          var current = this.container.getPluginByName("stats").getStats()['chunksSent'];
+          this.container.statsAdd({'chunksSent': current+1});
+        }
+      }.bind(this));
+    } else if (msg == "OFFER") {
+      console.log("[bemtv] recv by p2p");
+      clearTimeout(this.timeoutId);
+      this.el.resourceLoaded(data.msg.content);
+      this.cache.push({url: data.msg.url , data: data.msg.content});
+      var current = this.container.getPluginByName("stats").getStats()['chunksReceivedP2P'];
+      this.container.statsAdd({'chunksReceivedP2P': current+1});
     }
   },
   calculateScore: function(params) {
@@ -57,7 +85,7 @@ var Peer = BaseObject.extend({
   },
   swarmAdd: function(id, dc) {
     dataChannel = rtc_bufferedchannel(dc, {calcCharSize: false});
-    this.swarm[id] = {"dataChannel" : dataChannel, "score": undefined, "id": id};
+    this.swarm[id] = {"dataChannel" : dataChannel, "score": undefined, "scoreUpdatedAt": undefined, "id": id};
     dataChannel.on('data', function(data) { this.onData(id, data); }.bind(this));
   },
   onData: function(id, data) {
@@ -71,16 +99,14 @@ var Peer = BaseObject.extend({
     this.metrics = this.container.getPluginByName('stats').getStats();
     return {"scoreParams": {"wt": this.metrics['watchingTime'] || 0,
             "rt": this.metrics['rebufferingTime'] || 0 ,
-            "cms": this.metrics["currentMediaSequence"],
             "tps": this.peersServed.length || 0}};
   },
   requestResource: function(url, timeoutId) {
     _.each(this.swarm, function(peer) {
-      this.send(id, "REQ:" + url);
-    });
-    this.currentUrl = url;
+      this.send(peer.id, {"msg": "REQ", "url": url});
+    }.bind(this));
     this.timeoutId = timeoutId;
-  }
+  },
 });
 
 module.exports = Peer;

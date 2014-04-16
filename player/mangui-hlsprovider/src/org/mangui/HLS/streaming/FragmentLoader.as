@@ -462,7 +462,7 @@ package org.mangui.HLS.streaming {
                 choose a segment which starts less than three target durations from
                 the end of the Playlist file */
                 chunkSize = _levels[_level].averageduration;
-                var maxLivePosition : Number = Math.max(0, _levels[_level].duration - _hls.bemtvEntropy * _levels[_level].averageduration);
+                var maxLivePosition : Number = Math.max(0, _levels[_level].duration - 3 * _levels[_level].averageduration);
                 if (position == -1) {
                     // seek 3 fragments from end
                     seek_position = maxLivePosition;
