@@ -198,7 +198,6 @@ package org.mangui.HLS.streaming {
                 var ev : HLSEvent = new HLSEvent(HLSEvent.AUDIO_TRACK_CHANGE);
                 ev.audioTrack = _audioTrackId;
                 _hls.dispatchEvent(ev);
-                Log.info('Setting audio track to ' + num);
             }
         }
 

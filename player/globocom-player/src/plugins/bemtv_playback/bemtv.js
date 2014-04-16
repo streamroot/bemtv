@@ -32,9 +32,8 @@ var BemTVCore = BaseObject.extend({
   },
   requestResource: function(url) {
     this.currentUrl = url;
-    if (this.p2pSupport) { // && !this.buffering) { //have p2p and we aren't filling startup buffer (issue #23)
+    if (this.p2pSupport) {
       timeout = this.getTimeout();
-      console.log('[bemtv] requesting ' + url.match(".*/(.*ts)")[1] );
       this.timeoutId = setTimeout(function() { cdn_getter.postMessage(this.currentUrl); }.bind(this), timeout);
       this.updateCacheId = setTimeout(this.updateCache.bind(this), timeout);
       this.peer.requestResource(url, this.timeoutId);
@@ -49,6 +48,7 @@ var BemTVCore = BaseObject.extend({
   resourceLoadedFromCDN: function(ev) {
     this.el.resourceLoaded(ev.data);
     this.cache.push({url: this.currentUrl, data: ev.data});
+    console.log('[bemtv] ' + this.currentUrl.match(".*/(.*ts)")[1] + " from CDN");
     var current = this.container.getPluginByName("stats").getStats()['chunksReceivedCDN'];
     this.container.statsAdd({'chunksReceivedCDN': current+1});
   },

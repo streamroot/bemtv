@@ -187,10 +187,10 @@ package org.mangui.HLS.streaming {
             var first_pts : Number;
 
             if (_seek_position_real == Number.NEGATIVE_INFINITY) {
-                /* 
+                /*
                  * compute r
-                 * 
-                 *    real seek       requested seek                 Frag 
+                 *
+                 *    real seek       requested seek                 Frag
                  *     position           position                    End
                  *        *------------------*-------------------------
                  *        <------------------>
@@ -230,17 +230,17 @@ package org.mangui.HLS.streaming {
             tags.sort(_sortTagsbyDTS);
 
             if (_seek_in_progress) {
-                /* accurate seeking : 
+                /* accurate seeking :
                  * analyze fragment tags and look for last keyframe before seek position.
                  * in schema below, we seek at t=17s, in a fragment starting at t=10s, ending at t=20s
                  * this fragment contains 4 keyframes.
                  *  timestamp of the last keyframe before seek position is @ t=16s
-                 * 
+                 *
                  *                             seek_pts
                  *  K----------K------------K------*-----K---------|
                  *  10s       13s          16s    17s    18s      20s
-                 *  
-                 *  
+                 *
+                 *
                  */
                 var i : Number = 0;
                 var keyframe_pts : Number;
@@ -338,18 +338,15 @@ package org.mangui.HLS.streaming {
             } else {
                 _playStart = -1;
             }
-            Log.info("HLSNetStream:play(" + _playStart + ")");
             seek(_playStart);
         }
 
         override public function play2(param : NetStreamPlayOptions) : void {
-            Log.info("HLSNetStream:play2(" + param.start + ")");
             seek(param.start);
         }
 
         /** Pause playback. **/
         override public function pause() : void {
-            Log.info("HLSNetStream:pause");
             if (_state == HLSStates.PLAYING) {
                 super.pause();
                 _setState(HLSStates.PAUSED);
@@ -361,7 +358,6 @@ package org.mangui.HLS.streaming {
 
         /** Resume playback. **/
         override public function resume() : void {
-            Log.info("HLSNetStream:resume");
             if (_state == HLSStates.PAUSED) {
                 super.resume();
                 _setState(HLSStates.PLAYING);
@@ -406,7 +402,6 @@ package org.mangui.HLS.streaming {
 
         /** Start playing data in the buffer. **/
         override public function seek(position : Number) : void {
-            Log.info("HLSNetStream:seek(" + position + ")");
             _fragmentLoader.stop();
             _fragmentLoader.seek(position, _loaderCallback);
             _flvTagBuffer = new Vector.<Tag>();
@@ -415,7 +410,7 @@ package org.mangui.HLS.streaming {
             _seek_position_real = Number.NEGATIVE_INFINITY;
             _seek_in_progress = true;
             _reached_vod_end = false;
-            /* if HLS was in paused state before seeking, 
+            /* if HLS was in paused state before seeking,
              * switch to paused buffering state
              * otherwise, switch to playing buffering state
              */
@@ -440,7 +435,6 @@ package org.mangui.HLS.streaming {
 
         /** Stop playback. **/
         override public function close() : void {
-            Log.info("HLSNetStream:close");
             super.close();
             _timer.stop();
             _setState(HLSStates.IDLE);

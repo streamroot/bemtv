@@ -36,7 +36,6 @@ package org.mangui.chromeless {
             if (ExternalInterface.available) {
                 _id = _instance_count;
                 _instance_count++;
-                Log.info("add callback resourceLoaded");
                 ExternalInterface.addCallback("resourceLoaded", resourceLoaded);
                 ExternalInterface.addCallback("resourceLoadingError" + _id, resourceLoadingError);
             }
