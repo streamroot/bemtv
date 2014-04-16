@@ -71,6 +71,7 @@ var Peer = BaseObject.extend({
   actionsForPing: function(id, data) {
     this.swarm[id]["score"] = this.calculateScore(_.extend({"rtt":rtt}, data.msg.scoreParams));
     this.swarm[id] = _.extend(this.swarm[id], data.msg.scoreParams); // erase this line after score calculation
+    this.swarm[id]["isAhead"] = _.indexOf(Object.keys(this.cache), data.msg.scoreParams.lastFragmentUri, true) === 1? false: true;
   },
   actionsForDes: function(id, data) {
     _.each(this.cache, function(chunk) {
@@ -123,11 +124,17 @@ var Peer = BaseObject.extend({
     this.metrics = this.container.getPluginByName('stats').getStats();
     return {"scoreParams": {"wt": this.metrics['watchingTime'] || 0,
             "rt": this.metrics['rebufferingTime'] || 0 ,
-            "tps": this.peersServed.length || 0}};
+            "tps": this.peersServed.length || 0,
+            "lastFragmentUri": this.metrics['lastFragmentUri']}};
   },
   requestResource: function(url, timeoutId) {
     _.each(this.swarm, function(peer) {
-      this.send(peer.id, {"msg": "DES", "url": url});
+      if (peer.isAhead) {
+        console.log("[bemtv] peer is ahead, asking if he have the chunk");
+        this.send(peer.id, {"msg": "DES", "url": url});
+      } else {
+        console.log("[bemtv] peer is behind, skipping");
+      }
     }.bind(this));
     this.currentUrl = url;
     this.timeoutId = timeoutId;
