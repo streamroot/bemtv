@@ -43,7 +43,7 @@ var BemTVCore = BaseObject.extend({
   },
   getTimeout: function() {
     var chunkSize = this.el.getChunkSize();
-    return chunkSize !== 0? chunkSize * 250:1000;
+    return chunkSize !== 0? chunkSize * 400:1000;
   },
   resourceLoadedFromCDN: function(ev) {
     this.el.resourceLoaded(ev.data);

@@ -83,7 +83,6 @@ var Peer = BaseObject.extend({
   actionsForDesack: function(id, data) {
     if (this.currentUrl == data.msg.url) {
       this.send(id, {"msg": "REQ", "url": data.msg.url});
-      this.currentUrl == undefined;
     }
   },
   actionsForReq: function(id, data) {
@@ -125,7 +124,7 @@ var Peer = BaseObject.extend({
     return {"scoreParams": {"wt": this.metrics['watchingTime'] || 0,
             "rt": this.metrics['rebufferingTime'] || 0 ,
             "tps": this.peersServed.length || 0,
-            "lastFragmentUri": this.metrics['lastFragmentUri']}};
+            "lastFragmentUri": this.el.getLastFragmentUrl()}};
   },
   requestResource: function(url, timeoutId) {
     _.each(this.swarm, function(peer) {
