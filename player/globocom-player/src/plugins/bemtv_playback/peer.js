@@ -50,7 +50,11 @@ var Peer = BaseObject.extend({
   },
   send: function(id, message) {
     var sendingTime = Date.now();
-    this.swarm[id].dataChannel.send(JSON.stringify({"msg" : message, 'sendingTime': sendingTime}));
+    try {
+      this.swarm[id].dataChannel.send(JSON.stringify({"msg" : message, 'sendingTime': sendingTime}));
+    } catch(err) {
+      console.log("[bemtv] oops, error sending to " + id);
+    }
   },
   recv: function(id, message) {
     data = JSON.parse(message);
@@ -88,8 +92,9 @@ var Peer = BaseObject.extend({
   actionsForReq: function(id, data) {
     _.each(this.cache, function(chunk) {
       if (chunk.url == data.msg.url) {
-        console.log('[bemtv] sending ' + this.currentUrl.match(".*/(.*ts)")[1]);
-        this.send(id, {"msg": "OFFER", "url": data.msg.url, "content": chunk.data});
+        var size = chunk.data.length;
+        console.log('[bemtv] sending ' + this.currentUrl.match(".*/(.*ts)")[1] + " with size " + size);
+        this.send(id, {"msg": "OFFER", "url": data.msg.url, "content": chunk.data, "length": size});
         var current = this.container.getPluginByName("stats").getStats()["chunksSent"];
         this.container.statsAdd({"chunksSent": current+1});
       }
@@ -97,11 +102,15 @@ var Peer = BaseObject.extend({
   },
   actionsForOffer: function(id, data) {
     console.log('[bemtv] ' + this.currentUrl.match(".*/(.*ts)")[1] + " from P2P");
-    clearTimeout(this.timeoutId);
-    this.el.resourceLoaded(data.msg.content);
-    this.cache.push({url: data.msg.url , data: data.msg.content});
-    var current = this.container.getPluginByName("stats").getStats()["chunksReceivedP2P"];
-    this.container.statsAdd({"chunksReceivedP2P": current+1});
+    if (data.msg.content.length == data.msg.length) {
+      clearTimeout(this.timeoutId);
+      this.el.resourceLoaded(data.msg.content);
+      this.cache.push({url: data.msg.url , data: data.msg.content});
+      var current = this.container.getPluginByName("stats").getStats()["chunksReceivedP2P"];
+      this.container.statsAdd({"chunksReceivedP2P": current+1});
+    } else {
+      console.log("[bemtv] oops, corrupted chunk received. ("+ data.msg.content.length +" != "+data.msg.length+")");
+    }
   },
   calculateScore: function(params) {
     console.log("Need to calculate score for: ", params);
