@@ -16,10 +16,10 @@ BemTV acts intercepting the requests for chunks by the player, trying to fetch i
 ## Let me try
 Actually the playback is still a little weird (I'm experiencing some stucks and rebuffering events), but I'm trying to improve it. Try calling a friend near you that uses the same internet carrier and have fun.
 
-[BemTV on HLSProvider chromeless player](http://bem.tv/hlsprovider.html)
+[BemTV on FLASHLS chromeless player](http://bem.tv/demo.html)
 
 
 
 ## Author
 
-Flávio Ribeiro <flavio@bem.tv>
+Flávio Ribeiro  - flavio@bem.tv
