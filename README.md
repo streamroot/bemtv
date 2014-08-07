@@ -1,3 +1,7 @@
+## TL;DR. Where's the code?
+
+You can see it [here](http://github.com/bemtv/clappr-p2phls-plugin)
+
 ![Alt text](http://bem.tv/static/bemtvgithub.png)
 
 Hybrid CDN/Peer-to-Peer Architecture for Online Live Streams (HLS)
