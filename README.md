@@ -17,15 +17,11 @@ Almost all modern browsers [supports WebRTC](http://iswebrtcreadyyet.com/). BemT
 
 ## Let me try
 
-Playback is still a little weird (I'm experiencing some stucks and rebuffering events), but I'm improving it. Try calling a friend near you that uses the same internet carrier and have fun.
-
-[BemTV on flashls chromeless player](http://bem.tv/demo.html)
-
+Open [BemTV website](http://bem.tv) and call friends near you to visit also. Click play and look at chunks being exchanged on the stats box!
 
 ## Development
 
 Currently I'm working on a [clappr player](http://clappr.io) plugin that adds peer-to-peer support to HTTP Live Streaming (hls) streams. You can find the code and follow the progress by watching [this](https://github.com/bemtv/clappr-p2phls-plugin) repository.
-
 
 ## Publications
 
