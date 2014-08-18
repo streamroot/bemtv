@@ -1,5 +1,9 @@
+## TL;DR. Where's the code?
+
+You can see it [here](http://github.com/bemtv/clappr-p2phls-plugin)
+
 <div align=center><img src="http://bem.tv/img/logo.png" alt="BemTV logo"><br>
-<h2>BemTV: Hybrid CDN/P2P Architecture for HLS Broadcasts</h2>
+<h2>Hybrid CDN/P2P Architecture for HLS Broadcasts</h2>
 </div>
 
 ## Introduction
