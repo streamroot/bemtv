@@ -1,11 +1,6 @@
-## TL;DR. Where's the code?
-
-You can see it [here](http://github.com/bemtv/clappr-p2phls-plugin)
-
-![Alt text](http://bem.tv/static/bemtvgithub.png)
-
-Hybrid CDN/Peer-to-Peer Architecture for Online Live Streams (HLS)
-
+<div align=center><img src="http://bem.tv/img/logo.png" alt="BemTV logo"><br>
+<h2>BemTV: Hybrid CDN/P2P Architecture for HLS Broadcasts</h2>
+</div>
 
 ## Introduction
 
@@ -22,6 +17,11 @@ Open [BemTV website](http://bem.tv) and call friends near you to visit also. Cli
 ## Development
 
 Currently I'm working on a [clappr player](http://clappr.io) plugin that adds peer-to-peer support to HTTP Live Streaming (hls) streams. You can find the code and follow the progress by watching [this](https://github.com/bemtv/clappr-p2phls-plugin) repository.
+
+## How to use it on my own HLS transmission?
+
+Follow this [tutorial](https://github.com/bemtv/bemtv/wiki/tutorial).
+
 
 ## Publications
 
