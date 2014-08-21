@@ -1,4 +1,3 @@
-[![Stories in Ready](https://badge.waffle.io/bemtv/bemtv.png?label=ready&title=Ready)](https://waffle.io/bemtv/bemtv)
 ## TL;DR. Where's the code?
 
 You can see it [here](http://github.com/bemtv/clappr-p2phls-plugin)
