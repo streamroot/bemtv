@@ -18,7 +18,7 @@ Almost all modern browsers [supports WebRTC](http://iswebrtcreadyyet.com/). BemT
 
 Open [BemTV website](http://bem.tv) and call friends near you to visit also. Click play and look at chunks being exchanged on the stats box!
 
-## How to use it on my own HLS transmission?
+## How to build the plugins?
 
 Follow this [tutorial](https://github.com/bemtv/bemtv/wiki/tutorial).
 
