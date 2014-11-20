@@ -30,6 +30,10 @@ Currently I'm working on a [clappr player](http://clappr.io) plugin that adds pe
 
 You can follow BemTV publications and academic works by watching [this](http://github.com/bemtv/publications) repository. I'll push papers and presentations related to BemTV progress.
 
+## Questions/Support
+
+Post your question at our Google Groups discussion list: https://groups.google.com/d/forum/bemtv
+
 ## Author
 
 [Flávio Ribeiro](http://br.linkedin.com/in/flavioribeiro) - flavio@bem.tv
