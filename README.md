@@ -34,6 +34,12 @@ You can follow BemTV publications and academic works by watching [this](http://g
 
 Post your question at our Google Groups discussion list: https://groups.google.com/d/forum/bemtv
 
+# Contribute
+
+If you'd like to support the development of this project, consider make a donation.
+
+[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=BWQTD9JLRTNF6&lc=BR&item_name=BemTV%20CDN%2fP2P%20Architecture%20for%20HLS%20Broadcasts&item_number=bemtv&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
+
 ## Author
 
 [Flávio Ribeiro](http://br.linkedin.com/in/flavioribeiro) - flavio@bem.tv
