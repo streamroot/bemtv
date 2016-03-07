@@ -40,6 +40,6 @@ If you'd like to support the development of this project, consider make a donati
 
 [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=BWQTD9JLRTNF6&lc=US&item_name=BemTV%20CDN%2fP2P%20Architecture%20for%20HLS%20Broadcasts&item_number=bemtv&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted)
 
-## Author
+## Maintainers
 
-[Flávio Ribeiro](http://br.linkedin.com/in/flavioribeiro) - flavio@bem.tv
+[Streamroot](http://www.streamroot.io) - contact@streamroot.io
