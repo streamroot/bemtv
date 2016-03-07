@@ -1,9 +1,9 @@
 ## TL;DR. Where's the code?
 
-You can see it [here](http://github.com/bemtv/clappr-p2phls-plugin)
+You can see it [here](https://github.com/streamroot/clappr-p2phls-plugin).
 
-<div align=center><img src="http://bem.tv/img/logo.png" alt="BemTV logo"><br>
-<h2>Hybrid CDN/P2P Architecture for HLS Broadcasts</h2>
+<div align=center><img src="http://streamroot.test.s3.amazonaws.com/test_julien/bemtv/img/bem_big.svg" alt="BemTV Streamroot logo"><br>
+<h2>Hybrid CDN/P2P Architecture for HLS</h2>
 </div>
 
 ## Introduction
